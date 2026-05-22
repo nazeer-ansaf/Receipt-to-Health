@@ -1,0 +1,6 @@
+milk 2
+bread 2
+soda 3
+chips 2
+apples 6
+

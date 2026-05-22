@@ -1,0 +1,9 @@
+uploads/*
+!uploads/.gitkeep
+data/results/*
+!data/results/.gitkeep
+.env
+vendor/
+python/__pycache__/
+*.pyc
+

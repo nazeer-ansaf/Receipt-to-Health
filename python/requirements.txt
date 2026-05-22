@@ -1,0 +1,10 @@
+pytesseract
+opencv-python
+pillow
+easyocr
+numpy
+pandas
+scikit-learn
+rapidfuzz
+matplotlib
+

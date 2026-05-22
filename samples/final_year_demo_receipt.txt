@@ -1,0 +1,16 @@
+milk 2
+bread 2
+oats 1
+soda 4
+juice 2
+cookies 3
+chocolate 2
+chips 2
+vegetables 5
+beans 3
+chicken 2
+fish 1
+noodles 2
+sauce 1
+nuts 1
+
