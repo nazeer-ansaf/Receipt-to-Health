@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(120) NOT NULL,
     email VARCHAR(190) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(30) NOT NULL DEFAULT 'user',
+    auth_provider VARCHAR(40) NOT NULL DEFAULT 'local',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -125,4 +127,3 @@ CREATE TABLE IF NOT EXISTS trend_history (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (family_profile_id) REFERENCES family_profiles(id) ON DELETE SET NULL
 );
-

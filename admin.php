@@ -3,6 +3,24 @@ require_once __DIR__ . '/includes/layout.php';
 require_once __DIR__ . '/includes/results.php';
 require_once __DIR__ . '/includes/catalog.php';
 
+if (!is_admin_user()) {
+    render_page_start('Admin Access', 'admin');
+    page_hero(
+        'Restricted area',
+        'Admin Access Required',
+        'This console is available only to admin accounts.',
+        '<a class="button primary" href="profile_setup.php">Back to profile</a>'
+    );
+    ?>
+    <section class="panel">
+        <h2>Current Session</h2>
+        <p class="muted">You are signed in as <?= e(ucfirst(current_user_role())) ?>. Register or sign in with an admin role to open the data integrity console.</p>
+    </section>
+    <?php
+    render_page_end();
+    exit;
+}
+
 $counts = database_counts();
 $results = load_all_results();
 $catalog = food_catalog();
@@ -45,7 +63,7 @@ page_hero(
             <div><b>Done</b><span>MySQL result persistence</span></div>
             <div><b>Done</b><span>OCR correction workflow</span></div>
             <div><b>Done</b><span>Report export and printable report</span></div>
-            <div><b>Done</b><span>Register/login/logout and user-linked receipts</span></div>
+            <div><b>Done</b><span>Register/login/logout, roles, guest mode, and user-linked receipts</span></div>
             <div><b>Next</b><span>Real image OCR with Tesseract/EasyOCR</span></div>
         </div>
     </article>

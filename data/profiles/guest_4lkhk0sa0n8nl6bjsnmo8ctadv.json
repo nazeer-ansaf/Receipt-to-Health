@@ -1,0 +1,25 @@
+{
+    "display_name": "Guest Visitor",
+    "household_name": "My Household",
+    "family_size": 4,
+    "age_group": "mixed",
+    "activity_level": "moderate",
+    "diet_goal": "balanced",
+    "conditions": [],
+    "allergies": "",
+    "medications": "",
+    "preferred_foods": "",
+    "avoid_foods": "",
+    "health_notes": "",
+    "analysis": {
+        "completion_score": 75,
+        "summary": "My Household is set up as a mixed household with 4 member(s), a moderate activity level, and a balanced nutrition goal.",
+        "focus": {
+            "Balanced nutrition": "Monitor sugar, sodium, saturated fat, fiber, and food diversity together."
+        },
+        "recommendations": [
+            "Use each receipt report to build a more balanced weekly shopping pattern."
+        ]
+    },
+    "updated_at": "2026-05-23T08:31:47+02:00"
+}

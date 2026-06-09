@@ -7,8 +7,9 @@ require_once __DIR__ . '/auth.php';
 
 function nav_items(): array
 {
-    return [
+    $items = [
         'upload' => ['label' => 'Upload', 'href' => 'index.php'],
+        'profile' => ['label' => 'Health Profile', 'href' => 'profile_setup.php'],
         'dashboard' => ['label' => 'Dashboard', 'href' => 'dashboard.php'],
         'analytics' => ['label' => 'Analytics', 'href' => 'analytics.php'],
         'history' => ['label' => 'History', 'href' => 'history.php'],
@@ -23,11 +24,17 @@ function nav_items(): array
         'method' => ['label' => 'Methodology', 'href' => 'methodology.php'],
         'setup' => ['label' => 'Setup Check', 'href' => 'setup_check.php'],
     ];
+
+    if (!is_admin_user()) {
+        unset($items['admin']);
+    }
+
+    return $items;
 }
 
 function primary_nav_items(): array
 {
-    $primaryKeys = ['upload', 'dashboard', 'analytics', 'history', 'family', 'reports'];
+    $primaryKeys = ['upload', 'profile', 'dashboard', 'analytics', 'history', 'reports'];
     return array_intersect_key(nav_items(), array_flip($primaryKeys));
 }
 
@@ -38,8 +45,9 @@ function secondary_nav_items(): array
 
 function quick_actions(): array
 {
-    return [
+    $actions = [
         ['label' => 'Analyze Receipt', 'href' => 'index.php'],
+        ['label' => 'Health Profile', 'href' => 'profile_setup.php'],
         ['label' => 'Correct OCR Text', 'href' => 'ocr_review.php'],
         ['label' => 'Open Latest Report', 'href' => 'dashboard.php'],
         ['label' => 'Print Report', 'href' => 'reports.php'],
@@ -47,14 +55,31 @@ function quick_actions(): array
         ['label' => 'Export CSV', 'href' => 'api/export_report.php?format=csv'],
         ['label' => 'System Check', 'href' => 'setup_check.php'],
     ];
+
+    if (is_admin_user()) {
+        $actions[] = ['label' => 'Admin Console', 'href' => 'admin.php'];
+    }
+
+    return $actions;
 }
 
 function render_page_start(string $title, string $active = 'dashboard'): void
 {
+    $currentPage = basename((string)($_SERVER['SCRIPT_NAME'] ?? ''));
+    $publicPages = ['login.php', 'register.php', 'setup_check.php'];
+
+    if (!has_app_access() && !in_array($currentPage, $publicPages, true)) {
+        header('Location: login.php');
+        exit;
+    }
+
     $user = current_user();
+    $isAuthPage = in_array($currentPage, ['login.php', 'register.php'], true);
+    $htmlClass = $isAuthPage ? ' class="auth-page-root"' : '';
+    $bodyClass = $isAuthPage ? ' class="auth-page' . ($currentPage === 'register.php' ? ' register-page' : '') . '"' : '';
     ?>
     <!doctype html>
-    <html lang="en">
+    <html lang="en"<?= $htmlClass ?>>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -63,7 +88,7 @@ function render_page_start(string $title, string $active = 'dashboard'): void
         <link rel="stylesheet" href="assets/css/styles.css?v=<?= e($assetVersion) ?>">
         <link rel="stylesheet" href="assets/css/ui.css?v=<?= e($assetVersion) ?>">
     </head>
-    <body>
+    <body<?= $bodyClass ?>>
         <header class="topbar">
             <div class="topbar-row">
                 <a class="brand" href="index.php">
@@ -74,33 +99,40 @@ function render_page_start(string $title, string $active = 'dashboard'): void
                     </span>
                 </a>
 
-                <button class="nav-toggle" type="button" aria-controls="main-nav" aria-expanded="false">
-                    Menu
-                </button>
+                <?php if ($user): ?>
+                    <button class="nav-toggle" type="button" aria-controls="main-nav" aria-expanded="false">
+                        Menu
+                    </button>
 
-                <form class="nav-search" action="search.php" method="get" role="search">
-                    <input type="search" name="q" value="<?= e($_GET['q'] ?? '') ?>" placeholder="Search reports, foods, modules">
-                </form>
+                    <form class="nav-search" action="search.php" method="get" role="search">
+                        <input type="search" name="q" value="<?= e($_GET['q'] ?? '') ?>" placeholder="Search reports, foods, modules">
+                    </form>
+                <?php endif; ?>
 
                 <div class="topbar-tools">
-                    <details class="quick-menu">
-                        <summary>Actions</summary>
-                        <div class="quick-panel">
-                            <?php foreach (quick_actions() as $action): ?>
-                                <a href="<?= e($action['href']) ?>"><?= e($action['label']) ?></a>
-                            <?php endforeach; ?>
-                        </div>
-                    </details>
-                    <a class="status-chip" href="setup_check.php"><span></span> OK</a>
                     <?php if ($user): ?>
-                        <a class="status-chip user-chip" href="account.php"><?= e($user['name']) ?></a>
+                        <details class="quick-menu">
+                            <summary>Actions</summary>
+                            <div class="quick-panel">
+                                <?php foreach (quick_actions() as $action): ?>
+                                    <a href="<?= e($action['href']) ?>"><?= e($action['label']) ?></a>
+                                <?php endforeach; ?>
+                            </div>
+                        </details>
+                        <a class="status-chip" href="setup_check.php"><span></span> OK</a>
+                        <a class="status-chip user-chip" href="account.php">
+                            <?= e($user['name']) ?> · <?= e(ucfirst((string)($user['role'] ?? 'user'))) ?>
+                        </a>
+                        <a class="status-chip" href="logout.php">Logout</a>
                     <?php else: ?>
                         <a class="status-chip user-chip" href="login.php">Login</a>
+                        <a class="status-chip user-chip" href="register.php">Register</a>
                     <?php endif; ?>
                     <button class="theme-toggle" type="button" data-theme-toggle>Mode</button>
                 </div>
             </div>
 
+            <?php if ($user): ?>
             <nav id="main-nav" class="main-nav" aria-label="Main navigation">
             <?php foreach (primary_nav_items() as $key => $item): ?>
                 <a class="<?= $active === $key ? 'active' : '' ?>" href="<?= e($item['href']) ?>">
@@ -119,6 +151,7 @@ function render_page_start(string $title, string $active = 'dashboard'): void
                     </div>
                 </details>
             </nav>
+            <?php endif; ?>
         </header>
         <main class="shell">
     <?php

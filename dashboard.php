@@ -30,6 +30,8 @@ page_hero(
         $categories = category_distribution($items);
         $recommendations = $result['recommendations'] ?? [];
         $anomalies = $result['anomalies'] ?? [];
+        $profileContext = $result['profile_context'] ?? [];
+        $profileAnalysis = $result['profile_analysis'] ?? [];
     ?>
 
     <section class="score-band">
@@ -92,6 +94,39 @@ page_hero(
             </dl>
             <?php if (isset($result['database_warning'])): ?>
                 <p class="warning-text"><?= e($result['database_warning']) ?></p>
+            <?php endif; ?>
+        </article>
+    </section>
+
+    <section class="grid two">
+        <article class="panel">
+            <h2>Profile and Health Analysis</h2>
+            <p class="muted"><?= e($profileAnalysis['summary'] ?? 'No profile analysis was attached to this report.') ?></p>
+            <div class="module-list compact-list">
+                <?php foreach (($profileAnalysis['focus'] ?? []) as $label => $detail): ?>
+                    <div>
+                        <strong><?= e($label) ?></strong>
+                        <span><?= e($detail) ?></span>
+                    </div>
+                <?php endforeach; ?>
+                <?php if (empty($profileAnalysis['focus'])): ?>
+                    <div><strong>Balanced nutrition</strong><span>Add a health profile to personalize receipt scoring.</span></div>
+                <?php endif; ?>
+            </div>
+        </article>
+
+        <article class="panel">
+            <h2>User Health Notes</h2>
+            <dl class="facts compact">
+                <div><dt>Role</dt><dd><?= e(ucfirst((string)($profileContext['role'] ?? 'user'))) ?></dd></div>
+                <div><dt>Household</dt><dd><?= e($profileContext['household_name'] ?? 'Not saved') ?></dd></div>
+                <div><dt>Goal</dt><dd><?= e(str_replace('_', ' ', (string)($profileContext['diet_goal'] ?? 'balanced'))) ?></dd></div>
+                <div><dt>Activity</dt><dd><?= e(str_replace('_', ' ', (string)($profileContext['activity_level'] ?? 'moderate'))) ?></dd></div>
+            </dl>
+            <?php if (trim((string)($profileContext['health_notes'] ?? '')) !== ''): ?>
+                <pre class="receipt-text profile-note-box"><?= e($profileContext['health_notes']) ?></pre>
+            <?php else: ?>
+                <p class="muted">No free-text health note was provided for this report.</p>
             <?php endif; ?>
         </article>
     </section>

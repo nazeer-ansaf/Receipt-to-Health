@@ -1,6 +1,7 @@
 const root = document.documentElement;
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 const prefersReducedMotion = () => reducedMotionQuery.matches;
+root.classList.add('js-ready');
 
 const form = document.querySelector('#receipt-form');
 
@@ -157,29 +158,30 @@ if (navToggle && mainNav) {
     });
 }
 
-const themeToggle = document.querySelector('[data-theme-toggle]');
+const themeToggles = document.querySelectorAll('[data-theme-toggle]');
 const savedTheme = localStorage.getItem('r2h-theme');
 
 function applyTheme(theme) {
     root.dataset.theme = theme;
-    if (!themeToggle) return;
 
     const isDark = theme === 'dark';
-    themeToggle.textContent = isDark ? 'Light' : 'Dark';
-    themeToggle.setAttribute('aria-label', `Switch to ${isDark ? 'light' : 'dark'} mode`);
-    themeToggle.setAttribute('aria-pressed', String(isDark));
-    themeToggle.title = `Switch to ${isDark ? 'light' : 'dark'} mode`;
+    themeToggles.forEach((themeToggle) => {
+        themeToggle.textContent = isDark ? 'Light' : 'Dark';
+        themeToggle.setAttribute('aria-label', `Switch to ${isDark ? 'light' : 'dark'} mode`);
+        themeToggle.setAttribute('aria-pressed', String(isDark));
+        themeToggle.title = `Switch to ${isDark ? 'light' : 'dark'} mode`;
+    });
 }
 
 applyTheme(savedTheme || 'light');
 
-if (themeToggle) {
+themeToggles.forEach((themeToggle) => {
     themeToggle.addEventListener('click', () => {
         const current = root.dataset.theme === 'dark' ? 'light' : 'dark';
         applyTheme(current);
         localStorage.setItem('r2h-theme', current);
     });
-}
+});
 
 document.addEventListener('click', (event) => {
     document.querySelectorAll('.quick-menu[open], .nav-more[open]').forEach((menu) => {
@@ -257,11 +259,13 @@ window.addEventListener('scroll', updateScrollProgress, { passive: true });
 window.addEventListener('resize', updateScrollProgress);
 
 if (window.matchMedia('(pointer: fine)').matches) {
-    document.querySelectorAll('.panel, .metric').forEach((card) => {
-        card.addEventListener('pointermove', (event) => {
-            const rect = card.getBoundingClientRect();
-            card.style.setProperty('--spotlight-x', `${event.clientX - rect.left}px`);
-            card.style.setProperty('--spotlight-y', `${event.clientY - rect.top}px`);
+    document.querySelectorAll(
+        '.panel, .metric, .module-list div, .weight-list div, .risk-cards div, .method-steps div, .category-grid div, .pipeline div'
+    ).forEach((surface) => {
+        surface.addEventListener('pointermove', (event) => {
+            const rect = surface.getBoundingClientRect();
+            surface.style.setProperty('--spotlight-x', `${event.clientX - rect.left}px`);
+            surface.style.setProperty('--spotlight-y', `${event.clientY - rect.top}px`);
         });
     });
 }

@@ -1,5 +1,9 @@
 <?php
 require_once __DIR__ . '/includes/layout.php';
+require_once __DIR__ . '/includes/profile.php';
+
+$healthProfile = load_user_health_profile();
+$profileConditions = $healthProfile['conditions'] ?? [];
 
 render_page_start('Upload Receipt', 'upload');
 page_hero(
@@ -17,16 +21,15 @@ page_hero(
             <div class="grid two">
                 <label>
                     <span>Family members</span>
-                    <input type="number" name="family_size" min="1" max="20" value="4" required>
+                    <input type="number" name="family_size" min="1" max="20" value="<?= e($healthProfile['family_size'] ?? 4) ?>" required>
                 </label>
 
                 <label>
                     <span>Average age group</span>
                     <select name="age_group" required>
-                        <option value="adult">Adults</option>
-                        <option value="children">Children</option>
-                        <option value="elderly">Elderly</option>
-                        <option value="mixed">Mixed family</option>
+                        <?php foreach (['adult' => 'Adults', 'children' => 'Children', 'elderly' => 'Elderly', 'mixed' => 'Mixed family'] as $value => $label): ?>
+                            <option value="<?= e($value) ?>" <?= ($healthProfile['age_group'] ?? 'mixed') === $value ? 'selected' : '' ?>><?= e($label) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </label>
             </div>
@@ -34,12 +37,19 @@ page_hero(
             <fieldset>
                 <legend>Health conditions</legend>
                 <div class="chips">
-                    <label><input type="checkbox" name="conditions[]" value="diabetes"> Diabetes risk</label>
-                    <label><input type="checkbox" name="conditions[]" value="hypertension"> Hypertension</label>
-                    <label><input type="checkbox" name="conditions[]" value="cholesterol"> High cholesterol</label>
-                    <label><input type="checkbox" name="conditions[]" value="none"> None</label>
+                    <?php foreach (['diabetes' => 'Diabetes risk', 'hypertension' => 'Hypertension', 'cholesterol' => 'High cholesterol', 'none' => 'None'] as $value => $label): ?>
+                        <label>
+                            <input type="checkbox" name="conditions[]" value="<?= e($value) ?>" <?= in_array($value, $profileConditions, true) ? 'checked' : '' ?>>
+                            <?= e($label) ?>
+                        </label>
+                    <?php endforeach; ?>
                 </div>
             </fieldset>
+
+            <label>
+                <span>Extra health notes for this analysis</span>
+                <textarea name="health_notes" rows="5" placeholder="Tell the AI about cravings, symptoms, doctor advice, recent goals, or anything health related."><?= e($healthProfile['health_notes'] ?? '') ?></textarea>
+            </label>
 
             <label class="upload-box">
                 <span>Receipt image or text file</span>
@@ -66,6 +76,15 @@ page_hero(
             <div><strong>10 Reports</strong><span>Printable and exportable evidence</span></div>
         </div>
     </aside>
+</section>
+
+<section class="panel">
+    <h2>Active Health Profile</h2>
+    <div class="module-list">
+        <div><strong><?= e($healthProfile['household_name'] ?? 'My Household') ?></strong><span><?= e($healthProfile['family_size'] ?? 1) ?> member(s), <?= e(str_replace('_', ' ', (string)($healthProfile['diet_goal'] ?? 'balanced'))) ?> goal</span></div>
+        <div><strong>AI focus</strong><span><?= e(implode(', ', array_keys($healthProfile['analysis']['focus'] ?? ['Balanced nutrition' => true]))) ?></span></div>
+        <div><strong>Profile page</strong><span><a class="table-link" href="profile_setup.php">Update details and health notes</a></span></div>
+    </div>
 </section>
 
 <section class="grid three">

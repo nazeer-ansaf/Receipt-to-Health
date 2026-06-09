@@ -2,9 +2,14 @@
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/helpers.php';
 require_once __DIR__ . '/../includes/analysis.php';
+require_once __DIR__ . '/../includes/profile.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_response(['error' => 'Invalid request method.'], 405);
+}
+
+if (!has_app_access()) {
+    json_response(['error' => 'Login or guest mode is required before analysis.'], 403);
 }
 
 if (!isset($_FILES['receipt']) || $_FILES['receipt']['error'] !== UPLOAD_ERR_OK) {
@@ -14,10 +19,23 @@ if (!isset($_FILES['receipt']) || $_FILES['receipt']['error'] !== UPLOAD_ERR_OK)
 $familySize = max(1, min(20, (int)($_POST['family_size'] ?? 1)));
 $ageGroup = preg_replace('/[^a-zA-Z_-]/', '', $_POST['age_group'] ?? 'adult');
 $conditions = $_POST['conditions'] ?? [];
+$healthNotes = trim((string)($_POST['health_notes'] ?? ''));
 
 if (!is_array($conditions)) {
     $conditions = [];
 }
+
+$profile = load_user_health_profile();
+$profile['family_size'] = $familySize;
+$profile['age_group'] = $ageGroup;
+$profile['conditions'] = sanitize_profile_conditions($conditions);
+
+if ($healthNotes !== '') {
+    $profile['health_notes'] = $healthNotes;
+}
+
+save_user_health_profile($profile);
+$profileAnalysis = generate_health_profile_analysis($profile);
 
 $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'txt'];
 $originalName = $_FILES['receipt']['name'];
@@ -47,6 +65,15 @@ try {
 }
 
 $result['receipt_id'] = $receiptId;
+$result['profile_context'] = [
+    'role' => current_user_role(),
+    'guest_mode' => is_guest_user(),
+    'household_name' => $profile['household_name'] ?? '',
+    'diet_goal' => $profile['diet_goal'] ?? '',
+    'activity_level' => $profile['activity_level'] ?? '',
+    'health_notes' => $profile['health_notes'] ?? '',
+];
+$result['profile_analysis'] = $profileAnalysis;
 persist_analysis_result($result, $uploadedPath, current_user_id());
 save_analysis_result($result, $receiptId);
 
