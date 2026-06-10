@@ -29,12 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'login') {
-        $email = trim((string)($_POST['email'] ?? ''));
+        $loginIdentifier = trim((string)($_POST['login'] ?? $_POST['email'] ?? ''));
         $password = (string)($_POST['password'] ?? '');
-        $user = $email !== '' ? find_user_by_email($email) : null;
+        $user = $loginIdentifier !== '' ? find_user_by_login_identifier($loginIdentifier) : null;
 
         if (!$user || !password_verify($password, (string)$user['password_hash'])) {
-            $error = 'Invalid email or password.';
+            $error = 'Invalid username/email or password.';
         } else {
             login_user($user);
             header('Location: profile_setup.php?first=1');
@@ -132,8 +132,8 @@ render_page_start('Login', 'account');
                 <form method="post" class="auth-form">
                     <input type="hidden" name="action" value="login">
                     <label>
-                        <span>Email address</span>
-                        <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+                        <span>Username or email</span>
+                        <input type="text" name="login" placeholder="admin1 or you@example.com" autocomplete="username" required>
                     </label>
                     <label>
                         <span>Password</span>

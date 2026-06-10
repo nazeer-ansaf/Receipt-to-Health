@@ -1,0 +1,58 @@
+{
+    "display_name": "Guest Visitor",
+    "household_name": "My Household",
+    "family_size": 4,
+    "age_group": "mixed",
+    "activity_level": "moderate",
+    "diet_goal": "balanced",
+    "conditions": [
+        "diabetes",
+        "hypertension"
+    ],
+    "allergies": "",
+    "medications": "",
+    "preferred_foods": "",
+    "avoid_foods": "",
+    "health_notes": "Demo: pregnant mother, diabetic father, one child, low salt diet, soda should be corrected from 3 to 1.",
+    "family_members": [
+        {
+            "name": "Mother",
+            "age_group": "adult",
+            "conditions": [],
+            "notes": "pregnant"
+        },
+        {
+            "name": "Father",
+            "age_group": "adult",
+            "conditions": [
+                "diabetes",
+                "hypertension"
+            ],
+            "notes": "low salt"
+        },
+        {
+            "name": "Child",
+            "age_group": "children",
+            "conditions": [],
+            "notes": "child nutrition"
+        }
+    ],
+    "analysis": {
+        "completion_score": 100,
+        "summary": "My Household is set up as a mixed household with 4 member(s), a moderate activity level, and a balanced nutrition goal.",
+        "focus": {
+            "Sugar": "Prioritize low added-sugar foods and pair carbohydrates with fiber or protein.",
+            "Sodium": "Watch packaged sauces, instant foods, processed meats, and salty snacks.",
+            "Saturated fat": "Limit fried foods, full-fat dairy, fatty meats, and rich bakery items.",
+            "Father sugar risk": "This member has diabetes context, so sweet drinks and high-sugar snacks should be reduced first.",
+            "Father sodium risk": "This member has blood-pressure context, so salty packaged foods need stronger monitoring.",
+            "Child nutrition": "Child member profile increases attention on sugar, calcium, protein, and fiber quality."
+        },
+        "recommendations": [
+            "Keep sweet drinks, desserts, and highly refined snacks as occasional purchases.",
+            "Choose lower-sodium alternatives and add more fresh fruit, vegetables, and legumes.",
+            "Shift repeated purchases toward oats, beans, nuts, fish, and unsaturated cooking oils."
+        ]
+    },
+    "updated_at": "2026-06-10T21:54:05+02:00"
+}

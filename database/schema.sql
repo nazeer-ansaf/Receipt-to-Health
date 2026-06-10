@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(120) NOT NULL,
     email VARCHAR(190) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(30) NOT NULL DEFAULT 'user',
+    role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
     auth_provider VARCHAR(40) NOT NULL DEFAULT 'local',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -126,4 +126,22 @@ CREATE TABLE IF NOT EXISTS trend_history (
     fiber_total_g DECIMAL(10,2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (family_profile_id) REFERENCES family_profiles(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS medical_records (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    storage_key VARCHAR(160) NOT NULL,
+    record_uid VARCHAR(80) NOT NULL,
+    title VARCHAR(190) NULL,
+    notes TEXT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    stored_path VARCHAR(255) NOT NULL,
+    file_type VARCHAR(20) NOT NULL,
+    mime_type VARCHAR(120) NULL,
+    file_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX medical_records_user_id_index (user_id),
+    INDEX medical_records_storage_key_index (storage_key),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );

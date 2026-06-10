@@ -2,7 +2,6 @@
 require_once __DIR__ . '/includes/layout.php';
 
 $error = '';
-
 if (current_user()) {
     header('Location: profile_setup.php');
     exit;
@@ -31,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim((string)($_POST['name'] ?? ''));
     $email = trim((string)($_POST['email'] ?? ''));
     $password = (string)($_POST['password'] ?? '');
-    $role = normalize_user_role((string)($_POST['role'] ?? 'user'));
+    $role = 'user';
 
     if ($action === 'register' && ($name === '' || $email === '' || strlen($password) < 6)) {
         $error = 'Enter a name, valid email, and password with at least 6 characters.';
@@ -54,7 +53,7 @@ render_page_start('Register', 'account');
         <span class="auth-line line-a"></span>
         <span class="auth-line line-b"></span>
         <span class="auth-line line-c"></span>
-        <span class="auth-code code-a">USER  NUTRITIONIST  ADMIN</span>
+        <span class="auth-code code-a">PROFILE  RECEIPTS</span>
         <span class="auth-code code-b">PROFILE  RECEIPTS  INSIGHTS</span>
     </div>
 
@@ -69,9 +68,9 @@ render_page_start('Register', 'account');
             </a>
 
             <div class="auth-copy">
-                <p class="auth-kicker">Role-based workspace</p>
-                <h1>Create your nutrition intelligence account.</h1>
-                <p>Choose a role, build a health profile, and connect receipt analysis to a secure personalized workspace.</p>
+                <p class="auth-kicker">Personal workspace</p>
+                <h1>Create your nutrition account.</h1>
+                <p>Build your health profile and connect receipt analysis to a secure personalized workspace.</p>
             </div>
 
             <div class="role-orbit" aria-hidden="true">
@@ -79,13 +78,12 @@ render_page_start('Register', 'account');
                     <span>AI</span>
                     <strong>Profile Engine</strong>
                 </div>
-                <div class="role-node role-user"><strong>User</strong><span>Personal reports</span></div>
-                <div class="role-node role-nutritionist"><strong>Nutritionist</strong><span>Guided review</span></div>
-                <div class="role-node role-admin"><strong>Admin</strong><span>System console</span></div>
+                <div class="role-node role-user"><strong>Profile</strong><span>Health notes</span></div>
+                <div class="role-node role-report"><strong>Reports</strong><span>Receipt insights</span></div>
             </div>
 
             <div class="auth-stats">
-                <div><strong>3</strong><span>role types</span></div>
+                <div><strong>1</strong><span>user workspace</span></div>
                 <div><strong>1st</strong><span>profile setup</span></div>
                 <div><strong>AI</strong><span>analysis ready</span></div>
             </div>
@@ -111,8 +109,8 @@ render_page_start('Register', 'account');
 
                     <div class="auth-field-grid">
                         <label>
-                            <span>Name</span>
-                            <input type="text" name="name" placeholder="Your name" autocomplete="name" required>
+                            <span>Username</span>
+                            <input type="text" name="name" placeholder="user1" autocomplete="username" required>
                         </label>
                         <label>
                             <span>Email</span>
@@ -125,21 +123,6 @@ render_page_start('Register', 'account');
                         <input type="password" name="password" minlength="6" placeholder="Minimum 6 characters" autocomplete="new-password" required>
                     </label>
 
-                    <label>
-                        <span>Account role</span>
-                        <select name="role" class="auth-role-select">
-                            <option value="user">User</option>
-                            <option value="nutritionist">Nutritionist</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </label>
-
-                    <div class="auth-role-strip" aria-hidden="true">
-                        <div><strong>User</strong><span>Personal profile</span></div>
-                        <div><strong>Nutritionist</strong><span>Review flow</span></div>
-                        <div><strong>Admin</strong><span>Data console</span></div>
-                    </div>
-
                     <button class="button primary auth-submit" type="submit">Create account</button>
                 </form>
             </article>
@@ -147,8 +130,8 @@ render_page_start('Register', 'account');
             <div class="auth-option-grid">
                 <article class="auth-glass auth-social-card">
                     <div class="auth-card-header compact">
-                        <span>Fast entry</span>
-                        <h2>Social demo</h2>
+                        <span>Quick start</span>
+                        <h2>Try a demo workspace</h2>
                     </div>
                     <div class="social-buttons auth-social-buttons">
                         <?php foreach (['google' => 'Google', 'github' => 'GitHub', 'microsoft' => 'Microsoft'] as $provider => $label): ?>
@@ -163,8 +146,8 @@ render_page_start('Register', 'account');
 
                 <article class="auth-glass auth-guest-card">
                     <div class="auth-card-header compact">
-                        <span>No setup</span>
-                        <h2>Guest mode</h2>
+                        <span>No account</span>
+                        <h2>Guest access</h2>
                     </div>
                     <form method="post" class="guest-form">
                         <input type="hidden" name="action" value="guest">

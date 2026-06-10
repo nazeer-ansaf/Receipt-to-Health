@@ -8,21 +8,21 @@ require_once __DIR__ . '/auth.php';
 function nav_items(): array
 {
     $items = [
-        'upload' => ['label' => 'Upload', 'href' => 'index.php'],
-        'profile' => ['label' => 'Health Profile', 'href' => 'profile_setup.php'],
-        'dashboard' => ['label' => 'Dashboard', 'href' => 'dashboard.php'],
-        'analytics' => ['label' => 'Analytics', 'href' => 'analytics.php'],
+        'upload' => ['label' => 'Analyze', 'href' => 'index.php'],
+        'profile' => ['label' => 'Profile', 'href' => 'profile_setup.php'],
+        'dashboard' => ['label' => 'Results', 'href' => 'dashboard.php'],
+        'analytics' => ['label' => 'Trends', 'href' => 'analytics.php'],
         'history' => ['label' => 'History', 'href' => 'history.php'],
-        'ocr' => ['label' => 'OCR Review', 'href' => 'ocr_review.php'],
-        'foods' => ['label' => 'Food Database', 'href' => 'food_database.php'],
+        'ocr' => ['label' => 'Fix Items', 'href' => 'ocr_review.php'],
+        'foods' => ['label' => 'Foods', 'href' => 'food_database.php'],
         'simulator' => ['label' => 'Simulator', 'href' => 'simulator.php'],
-        'graph' => ['label' => 'Knowledge Graph', 'href' => 'knowledge_graph.php'],
-        'family' => ['label' => 'Family Profile', 'href' => 'family.php'],
+        'graph' => ['label' => 'Graph', 'href' => 'knowledge_graph.php'],
+        'family' => ['label' => 'Family', 'href' => 'family.php'],
         'account' => ['label' => 'Account', 'href' => 'account.php'],
-        'reports' => ['label' => 'Reports', 'href' => 'reports.php'],
+        'reports' => ['label' => 'Report', 'href' => 'reports.php'],
         'admin' => ['label' => 'Admin', 'href' => 'admin.php'],
         'method' => ['label' => 'Methodology', 'href' => 'methodology.php'],
-        'setup' => ['label' => 'Setup Check', 'href' => 'setup_check.php'],
+        'setup' => ['label' => 'Setup', 'href' => 'setup_check.php'],
     ];
 
     if (!is_admin_user()) {
@@ -46,13 +46,14 @@ function secondary_nav_items(): array
 function quick_actions(): array
 {
     $actions = [
-        ['label' => 'Analyze Receipt', 'href' => 'index.php'],
-        ['label' => 'Health Profile', 'href' => 'profile_setup.php'],
-        ['label' => 'Correct OCR Text', 'href' => 'ocr_review.php'],
-        ['label' => 'Open Latest Report', 'href' => 'dashboard.php'],
-        ['label' => 'Print Report', 'href' => 'reports.php'],
-        ['label' => 'Export JSON', 'href' => 'api/export_report.php?format=json'],
-        ['label' => 'Export CSV', 'href' => 'api/export_report.php?format=csv'],
+        ['label' => 'Start new analysis', 'href' => 'index.php'],
+        ['label' => 'Try demo report', 'href' => 'api/demo_mode.php?mode=final'],
+        ['label' => 'Try correction flow', 'href' => 'api/demo_mode.php?mode=review'],
+        ['label' => 'Edit health profile', 'href' => 'profile_setup.php'],
+        ['label' => 'Upload Medical Record', 'href' => 'profile_setup.php#medical-records'],
+        ['label' => 'Fix detected items', 'href' => 'ocr_review.php'],
+        ['label' => 'Open latest result', 'href' => 'dashboard.php'],
+        ['label' => 'Print/PDF report', 'href' => 'reports.php'],
         ['label' => 'System Check', 'href' => 'setup_check.php'],
     ];
 
@@ -119,11 +120,11 @@ function render_page_start(string $title, string $active = 'dashboard'): void
                                 <?php endforeach; ?>
                             </div>
                         </details>
-                        <a class="status-chip" href="setup_check.php"><span></span> OK</a>
-                        <a class="status-chip user-chip" href="account.php">
+                        <a class="status-chip system-chip" href="setup_check.php"><span></span> Ready</a>
+                        <a class="status-chip user-chip account-chip" href="account.php">
                             <?= e($user['name']) ?> · <?= e(ucfirst((string)($user['role'] ?? 'user'))) ?>
                         </a>
-                        <a class="status-chip" href="logout.php">Logout</a>
+                        <a class="status-chip logout-chip" href="logout.php">Logout</a>
                     <?php else: ?>
                         <a class="status-chip user-chip" href="login.php">Login</a>
                         <a class="status-chip user-chip" href="register.php">Register</a>
@@ -181,6 +182,21 @@ function page_hero(string $eyebrow, string $title, string $lede = '', string $ac
         <?php if ($actionHtml !== ''): ?>
             <div class="hero-actions"><?= $actionHtml ?></div>
         <?php endif; ?>
+    </section>
+    <?php
+}
+
+function page_steps(array $steps): void
+{
+    ?>
+    <section class="ux-stepper" aria-label="Page steps">
+        <?php foreach ($steps as $index => $step): ?>
+            <article>
+                <span><?= e((string)($index + 1)) ?></span>
+                <strong><?= e($step['title'] ?? '') ?></strong>
+                <small><?= e($step['text'] ?? '') ?></small>
+            </article>
+        <?php endforeach; ?>
     </section>
     <?php
 }

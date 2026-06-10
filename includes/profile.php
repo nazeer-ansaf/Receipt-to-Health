@@ -45,6 +45,10 @@ function default_health_profile(?array $user = null): array
         'preferred_foods' => '',
         'avoid_foods' => '',
         'health_notes' => '',
+        'family_members' => [
+            ['name' => 'Mother', 'age_group' => 'adult', 'conditions' => [], 'notes' => ''],
+            ['name' => 'Child', 'age_group' => 'children', 'conditions' => [], 'notes' => ''],
+        ],
         'analysis' => [],
         'updated_at' => null,
     ];
@@ -92,6 +96,7 @@ function sanitize_profile_payload(array $payload): array
         'preferred_foods' => trim((string)($payload['preferred_foods'] ?? '')),
         'avoid_foods' => trim((string)($payload['avoid_foods'] ?? '')),
         'health_notes' => trim((string)($payload['health_notes'] ?? '')),
+        'family_members' => sanitize_family_members($payload),
     ];
 }
 
@@ -101,6 +106,65 @@ function sanitize_profile_conditions(array $conditions): array
         static fn($value) => preg_replace('/[^a-zA-Z_-]/', '', (string)$value),
         $conditions
     )));
+}
+
+function sanitize_family_members(array $payload): array
+{
+    $names = $payload['member_name'] ?? [];
+    $ages = $payload['member_age_group'] ?? [];
+    $conditionGroups = $payload['member_conditions'] ?? [];
+    $notes = $payload['member_notes'] ?? [];
+    $members = [];
+
+    if (!is_array($names)) {
+        return [];
+    }
+
+    foreach ($names as $index => $name) {
+        $cleanName = trim((string)$name);
+
+        if ($cleanName === '') {
+            continue;
+        }
+
+        $rawConditions = $conditionGroups[$index] ?? [];
+        if (!is_array($rawConditions)) {
+            $rawConditions = [];
+        }
+
+        $members[] = [
+            'name' => $cleanName,
+            'age_group' => preg_replace('/[^a-zA-Z_-]/', '', (string)($ages[$index] ?? 'adult')) ?: 'adult',
+            'conditions' => sanitize_profile_conditions($rawConditions),
+            'notes' => trim((string)($notes[$index] ?? '')),
+        ];
+    }
+
+    return array_slice($members, 0, 12);
+}
+
+function family_member_context_text(array $profile): string
+{
+    $parts = [];
+
+    foreach (($profile['family_members'] ?? []) as $member) {
+        if (!is_array($member)) {
+            continue;
+        }
+
+        $conditions = $member['conditions'] ?? [];
+        $conditionText = is_array($conditions) && $conditions ? implode(', ', $conditions) : 'no conditions';
+        $note = trim((string)($member['notes'] ?? ''));
+        $parts[] = trim(sprintf(
+            '%s is %s with %s%s',
+            (string)($member['name'] ?? 'Family member'),
+            str_replace('_', ' ', (string)($member['age_group'] ?? 'adult')),
+            $conditionText,
+            $note !== '' ? '; note: ' . $note : ''
+        ));
+    }
+
+    return implode('. ', array_filter($parts));
 }
 
 function profile_completion_score(array $profile): int
@@ -118,7 +182,11 @@ function profile_completion_score(array $profile): int
         $completed++;
     }
 
-    return (int)round(($completed / 8) * 100);
+    if (!empty($profile['family_members'])) {
+        $completed++;
+    }
+
+    return (int)round(($completed / 9) * 100);
 }
 
 function generate_health_profile_analysis(array $profile): array
@@ -173,6 +241,28 @@ function generate_health_profile_analysis(array $profile): array
 
     if (trim((string)($profile['allergies'] ?? '')) !== '') {
         $focus['Allergy awareness'] = 'Review ingredient labels carefully for listed allergy or intolerance notes.';
+    }
+
+    foreach (($profile['family_members'] ?? []) as $member) {
+        if (!is_array($member)) {
+            continue;
+        }
+
+        $memberName = trim((string)($member['name'] ?? 'Family member')) ?: 'Family member';
+        $memberAgeGroup = strtolower((string)($member['age_group'] ?? 'adult'));
+        $memberConditions = array_map('strtolower', is_array($member['conditions'] ?? null) ? $member['conditions'] : []);
+
+        if ($memberAgeGroup === 'children') {
+            $focus[$memberName . ' nutrition'] = 'Child member profile increases attention on sugar, calcium, protein, and fiber quality.';
+        }
+
+        if (in_array('diabetes', $memberConditions, true)) {
+            $focus[$memberName . ' sugar risk'] = 'This member has diabetes context, so sweet drinks and high-sugar snacks should be reduced first.';
+        }
+
+        if (in_array('hypertension', $memberConditions, true)) {
+            $focus[$memberName . ' sodium risk'] = 'This member has blood-pressure context, so salty packaged foods need stronger monitoring.';
+        }
     }
 
     if (!$focus) {

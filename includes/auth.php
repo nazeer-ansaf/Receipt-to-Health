@@ -13,7 +13,56 @@ function start_app_session(): void
 function current_user(): ?array
 {
     start_app_session();
-    return isset($_SESSION['user']) && is_array($_SESSION['user']) ? $_SESSION['user'] : null;
+
+    if (!isset($_SESSION['user']) || !is_array($_SESSION['user'])) {
+        return null;
+    }
+
+    return refresh_session_user($_SESSION['user']);
+}
+
+function refresh_session_user(array $sessionUser): array
+{
+    static $refreshedUsers = [];
+
+    if (!empty($sessionUser['is_guest'])) {
+        return $sessionUser;
+    }
+
+    $userId = (int)($sessionUser['id'] ?? 0);
+
+    if ($userId <= 0) {
+        return $sessionUser;
+    }
+
+    if (isset($refreshedUsers[$userId])) {
+        return $refreshedUsers[$userId];
+    }
+
+    try {
+        ensure_user_auth_columns();
+
+        $statement = db()->prepare('SELECT id, name, email, role, auth_provider FROM users WHERE id = :id LIMIT 1');
+        $statement->execute([':id' => $userId]);
+        $user = $statement->fetch();
+
+        if (is_array($user)) {
+            $_SESSION['user'] = [
+                'id' => (int)$user['id'],
+                'name' => (string)$user['name'],
+                'email' => (string)$user['email'],
+                'role' => normalize_user_role((string)($user['role'] ?? 'user')),
+                'auth_provider' => (string)($user['auth_provider'] ?? 'local'),
+                'is_guest' => false,
+            ];
+
+            return $refreshedUsers[$userId] = $_SESSION['user'];
+        }
+    } catch (Throwable $exception) {
+        // Keep the existing session if the database is temporarily unavailable.
+    }
+
+    return $refreshedUsers[$userId] = $sessionUser;
 }
 
 function current_user_id(): ?int
@@ -74,10 +123,50 @@ function find_user_by_email(string $email): ?array
     return is_array($user) ? $user : null;
 }
 
+function find_user_by_login_identifier(string $identifier): ?array
+{
+    $identifier = trim($identifier);
+
+    if ($identifier === '') {
+        return null;
+    }
+
+    ensure_user_auth_columns();
+
+    $statement = db()->prepare(
+        'SELECT * FROM users
+         WHERE email = :email OR name = :name
+         ORDER BY CASE WHEN email = :email_order THEN 0 ELSE 1 END, id ASC
+         LIMIT 1'
+    );
+    $statement->execute([
+        ':email' => $identifier,
+        ':name' => $identifier,
+        ':email_order' => $identifier,
+    ]);
+
+    $user = $statement->fetch();
+    return is_array($user) ? $user : null;
+}
+
+function list_registered_users(int $limit = 50): array
+{
+    ensure_user_auth_columns();
+    $limit = max(1, min(200, $limit));
+    $statement = db()->query(
+        'SELECT id, name, email, role, auth_provider, created_at
+         FROM users
+         ORDER BY created_at DESC, id DESC
+         LIMIT ' . $limit
+    );
+
+    return $statement->fetchAll() ?: [];
+}
+
 function register_user(string $name, string $email, string $password, string $role = 'user'): array
 {
     ensure_user_auth_columns();
-    $role = normalize_user_role($role);
+    $role = normalize_account_role($role);
     $statement = db()->prepare(
         'INSERT INTO users (name, email, password_hash, role, auth_provider) VALUES (:name, :email, :password_hash, :role, :auth_provider)'
     );
@@ -134,7 +223,13 @@ function login_or_create_social_user(string $provider): array
 function normalize_user_role(string $role): string
 {
     $role = strtolower(preg_replace('/[^a-zA-Z_-]/', '', $role) ?: 'user');
-    return in_array($role, ['admin', 'user', 'nutritionist', 'guest'], true) ? $role : 'user';
+    return in_array($role, ['admin', 'user', 'guest'], true) ? $role : 'user';
+}
+
+function normalize_account_role(string $role): string
+{
+    $role = normalize_user_role($role);
+    return in_array($role, ['admin', 'user'], true) ? $role : 'user';
 }
 
 function normalize_social_provider(string $provider): string
@@ -176,7 +271,7 @@ function ensure_user_auth_columns(): void
     $checked = true;
 
     try {
-        db()->exec("ALTER TABLE users ADD COLUMN role VARCHAR(30) NOT NULL DEFAULT 'user' AFTER password_hash");
+        db()->exec("ALTER TABLE users ADD COLUMN role ENUM('user', 'admin') NOT NULL DEFAULT 'user' AFTER password_hash");
     } catch (Throwable $exception) {
         // Column already exists or database privileges are limited.
     }

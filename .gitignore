@@ -2,8 +2,12 @@ uploads/*
 !uploads/.gitkeep
 data/results/*
 !data/results/.gitkeep
+data/ocr_drafts/*
+!data/ocr_drafts/.gitkeep
+data/medical_records/*
+!data/medical_records/.gitkeep
+!data/medical_records/.htaccess
 .env
 vendor/
 python/__pycache__/
 *.pyc
-

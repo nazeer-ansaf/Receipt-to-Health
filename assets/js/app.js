@@ -3,45 +3,47 @@ const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
 const prefersReducedMotion = () => reducedMotionQuery.matches;
 root.classList.add('js-ready');
 
+document.querySelectorAll('.upload-box input[type="file"]').forEach((fileInput) => {
+    const uploadBox = fileInput.closest('.upload-box');
+
+    if (!uploadBox) return;
+
+    const emptyLabel = uploadBox.dataset.emptyLabel || 'No file selected';
+    const fileName = document.createElement('small');
+    fileName.className = 'file-name-pill';
+    fileName.textContent = emptyLabel;
+    fileName.setAttribute('aria-live', 'polite');
+    fileInput.insertAdjacentElement('afterend', fileName);
+
+    const syncFileState = () => {
+        fileName.textContent = fileInput.files?.[0]?.name || emptyLabel;
+        uploadBox.classList.toggle('has-file', Boolean(fileInput.files?.length));
+    };
+
+    fileInput.addEventListener('change', syncFileState);
+
+    ['dragenter', 'dragover'].forEach((eventName) => {
+        uploadBox.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            uploadBox.classList.add('is-dragging');
+        });
+    });
+
+    uploadBox.addEventListener('dragleave', () => uploadBox.classList.remove('is-dragging'));
+
+    uploadBox.addEventListener('drop', (event) => {
+        event.preventDefault();
+        uploadBox.classList.remove('is-dragging');
+        if (event.dataTransfer?.files?.length) {
+            fileInput.files = event.dataTransfer.files;
+            syncFileState();
+        }
+    });
+});
+
 const form = document.querySelector('#receipt-form');
 
 if (form) {
-    const fileInput = form.querySelector('input[type="file"]');
-    const uploadBox = form.querySelector('.upload-box');
-
-    if (fileInput && uploadBox) {
-        const fileName = document.createElement('small');
-        fileName.className = 'file-name-pill';
-        fileName.textContent = 'No receipt selected';
-        fileName.setAttribute('aria-live', 'polite');
-        fileInput.insertAdjacentElement('afterend', fileName);
-
-        const syncFileState = () => {
-            fileName.textContent = fileInput.files?.[0]?.name || 'No receipt selected';
-            uploadBox.classList.toggle('has-file', Boolean(fileInput.files?.length));
-        };
-
-        fileInput.addEventListener('change', syncFileState);
-
-        ['dragenter', 'dragover'].forEach((eventName) => {
-            uploadBox.addEventListener(eventName, (event) => {
-                event.preventDefault();
-                uploadBox.classList.add('is-dragging');
-            });
-        });
-
-        uploadBox.addEventListener('dragleave', () => uploadBox.classList.remove('is-dragging'));
-
-        uploadBox.addEventListener('drop', (event) => {
-            event.preventDefault();
-            uploadBox.classList.remove('is-dragging');
-            if (event.dataTransfer?.files?.length) {
-                fileInput.files = event.dataTransfer.files;
-                syncFileState();
-            }
-        });
-    }
-
     form.addEventListener('submit', () => {
         const button = form.querySelector('button[type="submit"]');
         if (button) {
@@ -49,6 +51,53 @@ if (form) {
             button.textContent = 'Analyzing...';
         }
         showLoadingOverlay('Analyzing receipt', 'OCR, NLP, scoring, anomaly detection, and recommendations are running.');
+    });
+}
+
+document.querySelectorAll('[data-item-correction-form]').forEach((correctionForm) => {
+    correctionForm.addEventListener('submit', () => {
+        showLoadingOverlay('Analyzing corrected items', 'The corrected basket is being scored with current health notes and food rules.');
+    });
+});
+
+const itemEditorBody = document.querySelector('[data-item-editor-body]');
+const addItemRowButton = document.querySelector('[data-add-item-row]');
+
+function removeItemRow(row) {
+    if (!itemEditorBody || itemEditorBody.rows.length <= 1) {
+        row.querySelectorAll('input').forEach((input) => {
+            input.value = input.name.includes('quantity') ? '1' : '';
+        });
+        return;
+    }
+
+    row.remove();
+}
+
+function attachItemRowEvents(row) {
+    row.querySelectorAll('[data-remove-item-row]').forEach((button) => {
+        button.addEventListener('click', () => removeItemRow(row));
+    });
+}
+
+if (itemEditorBody) {
+    itemEditorBody.querySelectorAll('tr').forEach(attachItemRowEvents);
+}
+
+if (addItemRowButton && itemEditorBody) {
+    addItemRowButton.addEventListener('click', () => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" name="item_name[]" placeholder="food item" required></td>
+            <td><input type="number" name="quantity[]" min="0" step="0.1" value="1" required></td>
+            <td class="muted">manual</td>
+            <td><span class="risk-badge risk-low">new</span></td>
+            <td class="proof-cell">Added during review</td>
+            <td><button class="mini-icon-button" type="button" data-remove-item-row title="Remove row">x</button></td>
+        `;
+        itemEditorBody.appendChild(row);
+        attachItemRowEvents(row);
+        row.querySelector('input')?.focus();
     });
 }
 
@@ -66,6 +115,113 @@ function showLoadingOverlay(title, message) {
         </div>
     `;
     document.body.appendChild(overlay);
+}
+
+const assistantForm = document.querySelector('[data-assistant-form]');
+const assistantLog = document.querySelector('[data-assistant-log]');
+const assistantDataElement = document.querySelector('#report-assistant-data');
+let reportAssistantData = null;
+
+if (assistantDataElement) {
+    try {
+        reportAssistantData = JSON.parse(assistantDataElement.textContent || '{}');
+    } catch (error) {
+        reportAssistantData = null;
+    }
+}
+
+function assistantList(values, fallback = 'none') {
+    const filtered = (values || []).filter(Boolean);
+    if (!filtered.length) return fallback;
+    return filtered.slice(0, 4).join(', ');
+}
+
+function weakestComponents(data) {
+    return Object.entries(data?.breakdown || {})
+        .map(([name, value]) => ({ name, value: Number(value) }))
+        .sort((a, b) => a.value - b.value)
+        .slice(0, 3);
+}
+
+function buildReportAssistantAnswer(question, data) {
+    if (!data) {
+        return 'I cannot read the current report data on this page yet.';
+    }
+
+    const query = question.toLowerCase();
+    const weak = weakestComponents(data);
+    const riskyRows = (data.risk_rows || []).filter((row) => ['High', 'Moderate'].includes(row.level));
+    const riskyItems = (data.items || [])
+        .filter((item) => /high|processed|sodium|sugar/i.test(item.risk || ''))
+        .map((item) => `${item.name} (${item.risk}, qty ${item.quantity})`);
+    const recommendations = (data.recommendations || []).filter(Boolean);
+
+    if (query.includes('why') || query.includes('low') || query.includes('score')) {
+        if (data.score_explanation?.summary) {
+            const reasons = assistantList(data.score_explanation.reasons || [], 'no extra reasons stored');
+            const priorities = assistantList((data.priority_alerts || []).map((alert) => `${alert.priority}: ${alert.title}`), 'no priority alerts');
+            return `${data.score_explanation.summary} Main reasons: ${reasons}. Priority actions: ${priorities}.`;
+        }
+
+        const weakText = weak.map((item) => `${item.name} ${item.value}`).join(', ') || 'no weak components';
+        const riskText = riskyRows.map((row) => `${row.label}: ${row.value} ${row.unit} (${row.level})`).join('; ') || 'no elevated nutrient rows';
+        return `Your score is ${data.score} (${data.label}). The weakest score components are ${weakText}. Current nutrient flags are ${riskText}. Main risky items are ${assistantList(riskyItems)}. First recommendation: ${recommendations[0] || 'keep variety high and watch packaged snacks.'}`;
+    }
+
+    if (query.includes('alternative') || query.includes('replace') || query.includes('swap') || query.includes('coconut') || query.includes('soda')) {
+        const swaps = (data.shopping_alternatives || []).map((item) => {
+            const alternatives = assistantList(item.alternatives, 'no listed swap');
+            return `${item.item}: ${alternatives}`;
+        });
+        return swaps.length
+            ? `Suggested swaps from this report: ${swaps.slice(0, 4).join(' | ')}. Coconut water is best as unsweetened and in small portions because it still contains natural sugar.`
+            : 'This report did not find risky items with stored swap suggestions.';
+    }
+
+    if (query.includes('pregnant') || query.includes('diabetic') || query.includes('diabetes') || query.includes('child') || query.includes('salt') || query.includes('note')) {
+        const flags = (data.health_note_flags || []).map((flag) => `${flag.label}: ${flag.proof}`);
+        return flags.length
+            ? `Detected health-note proof: ${flags.join(' | ')}`
+            : 'No smart health-note flags were detected for this report.';
+    }
+
+    if (query.includes('trend') || query.includes('week')) {
+        const trend = (data.weekly_trend || []).map((point) => `${point.label}: ${point.score}`);
+        return trend.length
+            ? `Weekly score trend: ${trend.join(' | ')}`
+            : 'There is not enough weekly history yet for a trend answer.';
+    }
+
+    return `This report score is ${data.score} (${data.label}). Ask about score, risky items, swaps, health notes, or weekly trend for a focused answer.`;
+}
+
+function addAssistantMessage(role, text) {
+    if (!assistantLog) return;
+
+    const message = document.createElement('div');
+    message.className = `assistant-message ${role}`;
+    const label = document.createElement('strong');
+    label.textContent = role === 'user' ? 'You' : 'Assistant';
+    const paragraph = document.createElement('p');
+    paragraph.textContent = text;
+    message.append(label, paragraph);
+    assistantLog.appendChild(message);
+    assistantLog.scrollTop = assistantLog.scrollHeight;
+}
+
+if (assistantForm && assistantLog) {
+    assistantForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const input = assistantForm.querySelector('input[name="question"]');
+        const question = input?.value.trim() || '';
+
+        if (!question) return;
+
+        addAssistantMessage('user', question);
+        addAssistantMessage('bot', buildReportAssistantAnswer(question, reportAssistantData));
+        input.value = '';
+        input.focus();
+    });
 }
 
 const simulator = document.querySelector('#simulator');

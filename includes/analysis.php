@@ -14,7 +14,7 @@ function sanitize_conditions(array $conditions): array
     )));
 }
 
-function run_python_analysis(string $inputPath, int $familySize, string $ageGroup, array $conditions): array
+function run_python_analysis(string $inputPath, int $familySize, string $ageGroup, array $conditions, string $healthNotes = ''): array
 {
     $pythonScript = ROOT_DIR . DIRECTORY_SEPARATOR . 'python' . DIRECTORY_SEPARATOR . 'process_receipt.py';
     $conditionText = implode(',', sanitize_conditions($conditions));
@@ -24,7 +24,8 @@ function run_python_analysis(string $inputPath, int $familySize, string $ageGrou
         . ' --input ' . escapeshellarg($inputPath)
         . ' --family-size ' . escapeshellarg((string)$familySize)
         . ' --age-group ' . escapeshellarg($ageGroup)
-        . ' --conditions ' . escapeshellarg($conditionText);
+        . ' --conditions ' . escapeshellarg($conditionText)
+        . ' --health-notes ' . escapeshellarg($healthNotes);
 
     $output = shell_exec($command);
     $result = json_decode($output ?? '', true);
@@ -34,6 +35,32 @@ function run_python_analysis(string $inputPath, int $familySize, string $ageGrou
     }
 
     return $result;
+}
+
+function ocr_draft_path(string $receiptId): string
+{
+    $safeId = preg_replace('/[^a-zA-Z0-9_-]/', '', $receiptId);
+    return OCR_DRAFT_DIR . DIRECTORY_SEPARATOR . $safeId . '.json';
+}
+
+function save_ocr_draft(string $receiptId, array $draft): void
+{
+    ensure_directory(OCR_DRAFT_DIR);
+    $draft['receipt_id'] = $receiptId;
+    $draft['created_at'] = date('c');
+    file_put_contents(ocr_draft_path($receiptId), json_encode($draft, JSON_PRETTY_PRINT));
+}
+
+function load_ocr_draft(string $receiptId): ?array
+{
+    $path = ocr_draft_path($receiptId);
+
+    if (!is_file($path)) {
+        return null;
+    }
+
+    $draft = json_decode((string)file_get_contents($path), true);
+    return is_array($draft) ? $draft : null;
 }
 
 function persist_analysis_result(array &$result, string $sourcePath, ?int $userId = null): void
@@ -105,11 +132,33 @@ function persist_analysis_result(array &$result, string $sourcePath, ?int $userI
             'INSERT INTO recommendations (receipt_id, recommendation_text, explanation) VALUES (:receipt_id, :recommendation_text, :explanation)'
         );
 
+        $proofByAdvice = [];
+
+        foreach (($result['recommendation_proofs'] ?? []) as $proofCard) {
+            if (!is_array($proofCard)) {
+                continue;
+            }
+
+            $advice = (string)($proofCard['advice'] ?? '');
+
+            if ($advice === '') {
+                continue;
+            }
+
+            $proofText = implode(' | ', array_filter(array_map('strval', $proofCard['proof_points'] ?? [])));
+            $evidenceText = implode(' | ', array_filter(array_map('strval', $proofCard['evidence_items'] ?? [])));
+            $proofByAdvice[$advice] = trim($proofText . ($evidenceText !== '' ? ' | Evidence: ' . $evidenceText : ''));
+        }
+
         foreach (($result['recommendations'] ?? []) as $recommendation) {
+            $recommendationText = (string)$recommendation;
+            $explanation = $proofByAdvice[$recommendationText]
+                ?? 'Generated from nutrient thresholds, family conditions, item risks, and anomaly output.';
+
             $recommendationStatement->execute([
                 ':receipt_id' => $databaseReceiptId,
-                ':recommendation_text' => $recommendation,
-                ':explanation' => 'Generated from nutrient thresholds, family conditions, item risks, and anomaly output.',
+                ':recommendation_text' => $recommendationText,
+                ':explanation' => $explanation,
             ]);
         }
 

@@ -3,6 +3,7 @@ require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/helpers.php';
 require_once __DIR__ . '/../includes/analysis.php';
 require_once __DIR__ . '/../includes/profile.php';
+require_once __DIR__ . '/../includes/medical_records.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_response(['error' => 'Invalid request method.'], 405);
@@ -37,7 +38,10 @@ if ($healthNotes !== '') {
 }
 
 save_user_health_profile($profile);
+$memberContext = family_member_context_text($profile);
+$analysisHealthNotes = trim((string)($profile['health_notes'] ?? $healthNotes) . ($memberContext !== '' ? "\nFamily members: " . $memberContext : ''));
 $profileAnalysis = generate_health_profile_analysis($profile);
+$medicalRecords = load_medical_records();
 
 ensure_directory(UPLOAD_DIR);
 ensure_directory(RESULT_DIR);
@@ -47,7 +51,7 @@ $textPath = UPLOAD_DIR . DIRECTORY_SEPARATOR . $receiptId . '_corrected.txt';
 file_put_contents($textPath, $receiptText);
 
 try {
-    $result = run_python_analysis($textPath, $familySize, $ageGroup, $conditions);
+    $result = run_python_analysis($textPath, $familySize, $ageGroup, $conditions, $analysisHealthNotes);
 } catch (Throwable $exception) {
     json_response([
         'error' => 'Python analysis failed.',
@@ -64,6 +68,12 @@ $result['profile_context'] = [
     'diet_goal' => $profile['diet_goal'] ?? '',
     'activity_level' => $profile['activity_level'] ?? '',
     'health_notes' => $profile['health_notes'] ?? '',
+    'family_members' => $profile['family_members'] ?? [],
+    'medical_record_count' => count($medicalRecords),
+    'medical_record_titles' => array_values(array_filter(array_map(
+        static fn($record) => trim((string)($record['title'] ?? '')) ?: (string)($record['original_name'] ?? ''),
+        array_slice($medicalRecords, 0, 5)
+    ))),
 ];
 $result['profile_analysis'] = $profileAnalysis;
 persist_analysis_result($result, $textPath, current_user_id());

@@ -1,8 +1,11 @@
 <?php
 require_once __DIR__ . '/includes/layout.php';
+require_once __DIR__ . '/includes/profile.php';
+require_once __DIR__ . '/includes/results.php';
 
 $profilePath = DATA_DIR . DIRECTORY_SEPARATOR . 'family_profile.json';
 $message = '';
+$healthProfile = load_user_health_profile();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ensure_directory(DATA_DIR);
@@ -114,5 +117,25 @@ page_hero(
     </article>
 </section>
 
-<?php render_page_end(); ?>
+<section class="panel">
+    <h2>Detailed Family Member Profiles</h2>
+    <?php if (empty($healthProfile['family_members'])): ?>
+        <p class="muted">Add named family members on the Health Profile page to personalize reports more deeply.</p>
+    <?php else: ?>
+        <div class="family-member-mini-grid">
+            <?php foreach ($healthProfile['family_members'] as $member): ?>
+                <article>
+                    <strong><?= e($member['name'] ?? 'Family member') ?></strong>
+                    <span><?= e(str_replace('_', ' ', (string)($member['age_group'] ?? 'adult'))) ?></span>
+                    <small><?= e(condition_text(['conditions' => $member['conditions'] ?? []])) ?></small>
+                    <?php if (trim((string)($member['notes'] ?? '')) !== ''): ?>
+                        <p><?= e($member['notes']) ?></p>
+                    <?php endif; ?>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+    <p class="muted"><a class="table-link" href="profile_setup.php">Edit detailed family member profiles</a></p>
+</section>
 
+<?php render_page_end(); ?>

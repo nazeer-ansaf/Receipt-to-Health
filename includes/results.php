@@ -103,9 +103,11 @@ function nutrient_rows(array $perPerson): array
         if ($target['type'] === 'lower') {
             $percent = min(100, ($value / max($target['danger'], 1)) * 100);
             $status = $value <= $target['target'] ? 'Within target' : ($value >= $target['danger'] ? 'High risk' : 'Elevated');
+            $level = $value <= $target['target'] ? 'Low' : ($value >= $target['danger'] ? 'High' : 'Moderate');
         } else {
             $percent = min(100, ($value / max($target['target'], 1)) * 100);
             $status = $value >= $target['target'] ? 'Good' : 'Needs improvement';
+            $level = $value >= $target['target'] ? 'Low' : ($value <= $target['danger'] ? 'High' : 'Moderate');
         }
 
         $rows[] = [
@@ -115,11 +117,229 @@ function nutrient_rows(array $perPerson): array
             'unit' => $target['unit'],
             'target' => $target['target'],
             'status' => $status,
+            'level' => $level,
+            'level_class' => risk_level_class($level),
             'percent' => round($percent, 1),
         ];
     }
 
     return $rows;
+}
+
+function risk_level_class(string $level): string
+{
+    $level = strtolower(trim($level));
+
+    if ($level === 'high') {
+        return 'risk-high';
+    }
+    if ($level === 'moderate') {
+        return 'risk-moderate';
+    }
+    return 'risk-low';
+}
+
+function risk_text_class(string $risk): string
+{
+    $risk = strtolower($risk);
+
+    if (str_contains($risk, 'high') || str_contains($risk, 'processed') || str_contains($risk, 'sodium') || str_contains($risk, 'sugar')) {
+        return 'risk-high';
+    }
+
+    if (str_contains($risk, 'moderate') || str_contains($risk, 'refined') || str_contains($risk, 'sweetened') || str_contains($risk, 'hidden') || str_contains($risk, 'energy')) {
+        return 'risk-moderate';
+    }
+
+    return 'risk-low';
+}
+
+function priority_class(string $priority): string
+{
+    $priority = strtolower(trim($priority));
+
+    if ($priority === 'fix first') {
+        return 'priority-fix';
+    }
+    if ($priority === 'watch') {
+        return 'priority-watch';
+    }
+    return 'priority-good';
+}
+
+function score_explanation(array $result): array
+{
+    $stored = $result['score_explanation'] ?? null;
+
+    if (is_array($stored) && isset($stored['summary'])) {
+        return $stored;
+    }
+
+    $breakdown = $result['health_score']['breakdown'] ?? [];
+    asort($breakdown);
+    $weakest = array_slice($breakdown, 0, 3, true);
+
+    return [
+        'summary' => 'Score explanation is based on the lowest scoring components: ' . implode(', ', array_map(
+            static fn($key, $value) => ucwords((string)$key) . ' ' . $value,
+            array_keys($weakest),
+            $weakest
+        )) . '.',
+        'reasons' => ['Older reports may not contain the newer detailed explanation fields.'],
+        'weakest_components' => array_map(
+            static fn($key, $value) => ['component' => (string)$key, 'score' => $value],
+            array_keys($weakest),
+            $weakest
+        ),
+    ];
+}
+
+function recommendation_cards(array $result): array
+{
+    $cards = [];
+
+    foreach (($result['recommendation_proofs'] ?? []) as $card) {
+        if (!is_array($card)) {
+            continue;
+        }
+
+        $advice = trim((string)($card['advice'] ?? $card['recommendation'] ?? ''));
+
+        if ($advice === '') {
+            continue;
+        }
+
+        $cards[] = [
+            'advice' => $advice,
+            'trigger' => trim((string)($card['trigger'] ?? 'Rule-based recommendation')),
+            'proof_points' => array_values(array_filter(array_map('strval', $card['proof_points'] ?? []))),
+            'evidence_items' => array_values(array_filter(array_map('strval', $card['evidence_items'] ?? []))),
+            'alternatives' => is_array($card['alternatives'] ?? null) ? $card['alternatives'] : [],
+        ];
+    }
+
+    if ($cards) {
+        return $cards;
+    }
+
+    return build_recommendation_cards_from_result($result);
+}
+
+function build_recommendation_cards_from_result(array $result): array
+{
+    $cards = [];
+    $perPerson = $result['per_person_nutrition'] ?? [];
+    $family = $result['family'] ?? [];
+    $recommendations = $result['recommendations'] ?? [];
+
+    foreach ($recommendations as $recommendation) {
+        $advice = trim((string)$recommendation);
+
+        if ($advice === '') {
+            continue;
+        }
+
+        $lowerAdvice = strtolower($advice);
+        $proofPoints = [];
+        $evidenceItems = [];
+        $trigger = 'Rule-based recommendation';
+
+        if (str_contains($lowerAdvice, 'sugar')) {
+            $trigger = 'Nutrient threshold';
+            $proofPoints[] = recommendation_nutrient_proof($perPerson, 'sugar_g', 'Sugar', 25, 'g', 'or less');
+            $evidenceItems = array_merge($evidenceItems, recommendation_item_evidence($result, ['soda', 'juice', 'cookies', 'chocolate', 'yogurt', 'cereal']));
+        }
+
+        if (str_contains($lowerAdvice, 'sodium') || str_contains($lowerAdvice, 'salt')) {
+            $trigger = 'Nutrient threshold';
+            $proofPoints[] = recommendation_nutrient_proof($perPerson, 'sodium_mg', 'Sodium', 700, 'mg', 'or less');
+            $evidenceItems = array_merge($evidenceItems, recommendation_item_evidence($result, ['chips', 'noodles', 'sausages', 'sauce', 'cheese']));
+        }
+
+        if (str_contains($lowerAdvice, 'fiber')) {
+            $trigger = 'Nutrient threshold';
+            $proofPoints[] = recommendation_nutrient_proof($perPerson, 'fiber_g', 'Fiber', 8, 'g', 'or more');
+        }
+
+        if (str_contains($lowerAdvice, 'diabetes')) {
+            $trigger = 'Condition and item match';
+            $proofPoints[] = 'Diabetes risk was selected in the family conditions.';
+            $evidenceItems = array_merge($evidenceItems, recommendation_item_evidence($result, ['soda', 'juice', 'cookies', 'chocolate']));
+        }
+
+        if (str_contains($lowerAdvice, 'hypertension')) {
+            $trigger = 'Condition and item match';
+            $proofPoints[] = 'Hypertension was selected in the family conditions.';
+            $evidenceItems = array_merge($evidenceItems, recommendation_item_evidence($result, ['chips', 'noodles', 'sausages', 'sauce']));
+        }
+
+        if (str_contains($lowerAdvice, 'vegetable')) {
+            $trigger = str_contains($lowerAdvice, 'add') ? 'Missing food group' : $trigger;
+            $proofPoints[] = 'Vegetable presence is checked from normalized receipt items and category distribution.';
+            $evidenceItems = array_merge($evidenceItems, recommendation_item_evidence($result, ['vegetables']));
+        }
+
+        if (str_contains($lowerAdvice, 'noodles')) {
+            $trigger = 'Item risk rule';
+            $proofPoints[] = 'Noodles are mapped as high sodium instant food in the nutrition graph.';
+            $evidenceItems = array_merge($evidenceItems, recommendation_item_evidence($result, ['noodles']));
+        }
+
+        if (str_contains($lowerAdvice, 'processed meat') || str_contains($lowerAdvice, 'sausages')) {
+            $trigger = 'Item risk rule';
+            $proofPoints[] = 'Processed meat is mapped to sodium and saturated fat exposure.';
+            $evidenceItems = array_merge($evidenceItems, recommendation_item_evidence($result, ['sausages']));
+        }
+
+        if (str_contains($lowerAdvice, 'sweet snacks are present')) {
+            $trigger = 'Item risk rule';
+            $proofPoints[] = 'Sweet snack items are identified from normalized receipt names and risk labels.';
+            $evidenceItems = array_merge($evidenceItems, recommendation_item_evidence($result, ['cookies', 'chocolate']));
+        }
+
+        if (!$proofPoints) {
+            $proofPoints[] = 'Generated from nutrient thresholds, family conditions, item risks, and anomaly output.';
+            $proofPoints[] = 'Family context: ' . condition_text($family) . '.';
+        }
+
+        $cards[] = [
+            'advice' => $advice,
+            'trigger' => $trigger,
+            'proof_points' => array_values(array_unique($proofPoints)),
+            'evidence_items' => array_values(array_unique($evidenceItems)),
+        ];
+    }
+
+    return $cards;
+}
+
+function recommendation_nutrient_proof(array $perPerson, string $key, string $label, float $target, string $unit, string $direction): string
+{
+    $value = round((float)($perPerson[$key] ?? 0), 2);
+    return $label . ' is ' . $value . ' ' . $unit . ' per person; target is ' . $target . ' ' . $unit . ' ' . $direction . '.';
+}
+
+function recommendation_item_evidence(array $result, array $names): array
+{
+    $evidence = [];
+    $nameSet = array_flip($names);
+
+    foreach (($result['items'] ?? []) as $item) {
+        $name = (string)($item['name'] ?? '');
+
+        if (!isset($nameSet[$name])) {
+            continue;
+        }
+
+        $quantity = (float)($item['quantity'] ?? 1);
+        $category = (string)($item['category'] ?? 'unknown');
+        $risk = (string)($item['risk'] ?? 'risk not stored');
+        $rawLine = trim((string)($item['raw_line'] ?? ''));
+        $rawEvidence = $rawLine !== '' ? '; receipt line: ' . $rawLine : '';
+        $evidence[] = $name . ' detected, quantity ' . $quantity . ' (' . $category . ', ' . $risk . $rawEvidence . ')';
+    }
+
+    return $evidence;
 }
 
 function average_score(array $results): float
@@ -248,6 +468,38 @@ function moving_average_scores(array $results, int $window = 3): array
     }
 
     return $averages;
+}
+
+function weekly_score_trend(array $results, int $limit = 8): array
+{
+    $weeks = [];
+    $ordered = array_reverse($results);
+
+    foreach ($ordered as $result) {
+        $timestamp = (int)($result['_created_at'] ?? time());
+        $weekKey = date('o-\WW', $timestamp);
+
+        if (!isset($weeks[$weekKey])) {
+            $weeks[$weekKey] = [
+                'key' => $weekKey,
+                'label' => date('M j', strtotime('monday this week', $timestamp) ?: $timestamp),
+                'scores' => [],
+            ];
+        }
+
+        $weeks[$weekKey]['scores'][] = score_value($result);
+    }
+
+    $points = array_values($weeks);
+    $points = array_slice($points, max(0, count($points) - $limit));
+
+    foreach ($points as $index => $point) {
+        $points[$index]['score'] = round(array_sum($point['scores']) / max(1, count($point['scores'])), 1);
+        $points[$index]['count'] = count($point['scores']);
+        unset($points[$index]['scores']);
+    }
+
+    return $points;
 }
 
 function database_counts(): array
