@@ -109,10 +109,10 @@ try {
 
 render_page_start('Admin Evidence', 'admin');
 page_hero(
-    'System evidence',
-    'Admin and Data Integrity Console',
-    'This page is useful for final demonstrations because it proves that the project has backend storage, AI outputs, catalog data, and system readiness checks.',
-    '<a class="button ghost" href="setup_check.php">Run setup check</a>'
+    'Admin panel',
+    'Admin Control Panel',
+    'Manage accounts, maintain the food catalog, and review backend evidence from a role-gated workspace.',
+    '<a class="button primary" href="#manage-users">Manage users</a><a class="button ghost" href="#manage-food-database">Food database</a><a class="button ghost" href="setup_check.php">Run setup check</a>'
 );
 ?>
 
@@ -128,6 +128,15 @@ page_hero(
     <article class="metric"><span>Food catalog</span><strong><?= count($catalog) ?></strong><small>records</small></article>
     <article class="metric"><span>Python</span><strong><?= e(PYTHON_COMMAND) ?></strong><small>analysis command</small></article>
     <article class="metric"><span>Database</span><strong><?= isset($counts['error']) ? 'Issue' : 'OK' ?></strong><small>MySQL connection</small></article>
+</section>
+
+<section class="panel">
+    <h2>Admin Features</h2>
+    <div class="module-list">
+        <div><strong>User panel</strong><span>Create user or admin accounts without exposing role selection on public registration.</span></div>
+        <div><strong>Catalog panel</strong><span>Edit nutrition values, aliases, risks, and recommendations used by receipt analysis.</span></div>
+        <div><strong>Evidence panel</strong><span>Inspect database counts, generated reports, and system readiness for demonstrations.</span></div>
+    </div>
 </section>
 
 <section class="grid two">
@@ -159,7 +168,7 @@ page_hero(
     </article>
 </section>
 
-<section class="panel">
+<section id="manage-users" class="panel">
     <h2>Manage User Accounts</h2>
     <p class="muted">Only signed-in admins can create admin accounts. Public registration always creates normal user accounts.</p>
 
@@ -202,7 +211,7 @@ page_hero(
     <?php endif; ?>
 </section>
 
-<section class="panel">
+<section id="manage-food-database" class="panel">
     <h2>Manage Food Database</h2>
 
     <div class="admin-import-export">
@@ -271,7 +280,7 @@ page_hero(
     </div>
 </section>
 
-<section class="panel">
+<section id="generated-results" class="panel">
     <h2>Generated Result Files</h2>
     <div class="table-wrap">
         <table>

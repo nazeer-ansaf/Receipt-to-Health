@@ -167,6 +167,11 @@ function register_user(string $name, string $email, string $password, string $ro
 {
     ensure_user_auth_columns();
     $role = normalize_account_role($role);
+
+    if ($role === 'admin' && !is_admin_user()) {
+        throw new RuntimeException('Only signed-in admins can create admin accounts.');
+    }
+
     $statement = db()->prepare(
         'INSERT INTO users (name, email, password_hash, role, auth_provider) VALUES (:name, :email, :password_hash, :role, :auth_provider)'
     );

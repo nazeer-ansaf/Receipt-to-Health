@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim((string)($_POST['email'] ?? ''));
     $password = (string)($_POST['password'] ?? '');
     $role = 'user';
+    $matchingLogin = $name !== '' ? find_user_by_login_identifier($name) : null;
 
     if ($action === 'register' && ($name === '' || $email === '' || strlen($password) < 6)) {
         $error = 'Enter a name, valid email, and password with at least 6 characters.';
@@ -38,6 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Enter a valid email address.';
     } elseif ($action === 'register' && find_user_by_email($email)) {
         $error = 'An account already exists for this email.';
+    } elseif ($action === 'register' && $matchingLogin && strcasecmp((string)($matchingLogin['name'] ?? ''), $name) === 0) {
+        $error = 'An account already exists for this username.';
     } elseif ($action === 'register') {
         $user = register_user($name, $email, $password, $role);
         login_user($user);

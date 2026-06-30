@@ -4,7 +4,7 @@ require_once __DIR__ . '/includes/layout.php';
 $error = '';
 
 if (current_user()) {
-    header('Location: profile_setup.php');
+    header('Location: ' . role_home_href(current_user()));
     exit;
 }
 
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $user = login_or_create_social_user((string)($_POST['provider'] ?? 'google'));
             login_user($user);
-            header('Location: profile_setup.php?first=1');
+            header('Location: ' . post_login_redirect_url($user));
             exit;
         } catch (Throwable $exception) {
             $error = 'Social demo login could not start: ' . $exception->getMessage();
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Invalid username/email or password.';
         } else {
             login_user($user);
-            header('Location: profile_setup.php?first=1');
+            header('Location: ' . post_login_redirect_url($user));
             exit;
         }
     }
@@ -169,7 +169,7 @@ render_page_start('Login', 'account');
                         <input type="hidden" name="action" value="guest">
                         <button class="button ghost auth-guest-button" type="submit">Continue as guest</button>
                     </form>
-                    <a class="auth-register-link" href="register.php">Create role account</a>
+                    <a class="auth-register-link" href="register.php">Create user account</a>
                 </article>
             </div>
         </section>

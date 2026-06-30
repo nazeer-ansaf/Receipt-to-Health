@@ -5,6 +5,7 @@ require_once __DIR__ . '/includes/profile.php';
 
 $user = current_user();
 $isGuest = is_guest_user();
+$isAdmin = $user && normalize_user_role((string)($user['role'] ?? 'user')) === 'admin';
 $profile = $user ? load_user_health_profile($user) : [];
 $profileAnalysis = $profile['analysis'] ?? [];
 $databaseStats = [];
@@ -29,10 +30,16 @@ if ($user && !$isGuest) {
 
 render_page_start('Account', 'account');
 page_hero(
-    'User management',
-    'Household Account',
-    'Manage the active session, role, profile status, and user-linked receipt persistence.',
-    $user ? '<a class="button primary" href="profile_setup.php">Health profile</a><a class="button ghost" href="logout.php">Logout</a>' : '<a class="button primary" href="login.php">Login</a>'
+    $isAdmin ? 'Admin account' : 'User management',
+    $isAdmin ? 'Admin Account' : 'Household Account',
+    $isAdmin
+        ? 'Manage the active admin session and jump to system, user, and catalog tools.'
+        : 'Manage the active session, role, profile status, and user-linked receipt persistence.',
+    $user
+        ? ($isAdmin
+            ? '<a class="button primary" href="admin.php">Admin panel</a><a class="button ghost" href="logout.php">Logout</a>'
+            : '<a class="button primary" href="profile_setup.php">Health profile</a><a class="button ghost" href="logout.php">Logout</a>')
+        : '<a class="button primary" href="login.php">Login</a>'
 );
 ?>
 
@@ -83,20 +90,38 @@ page_hero(
 
     <section class="grid two">
         <article class="panel">
-            <h2>Next User Actions</h2>
-            <div class="module-list">
-                <div><strong>Upload receipt</strong><span>New analysis will be linked to this account.</span></div>
-                <div><strong>Update health profile</strong><span>Use household context and notes for personalization.</span></div>
-                <div><strong>Export reports</strong><span>Generate JSON/CSV evidence for this project.</span></div>
-            </div>
+            <?php if ($isAdmin): ?>
+                <h2>Admin Panel Actions</h2>
+                <div class="module-list">
+                    <div><strong>User accounts</strong><span>Create admin or user accounts from the admin panel.</span></div>
+                    <div><strong>Food catalog</strong><span>Edit nutrient values, aliases, risks, and recommendations.</span></div>
+                    <div><strong>System evidence</strong><span>Review database counts, generated reports, and setup status.</span></div>
+                </div>
+            <?php else: ?>
+                <h2>Next User Actions</h2>
+                <div class="module-list">
+                    <div><strong>Upload receipt</strong><span>New analysis will be linked to this account.</span></div>
+                    <div><strong>Update health profile</strong><span>Use household context and notes for personalization.</span></div>
+                    <div><strong>Export reports</strong><span>Generate JSON/CSV evidence for this project.</span></div>
+                </div>
+            <?php endif; ?>
         </article>
         <article class="panel">
-            <h2>Access Features</h2>
-            <div class="module-list">
-                <div><strong>Hashed password</strong><span>Plain passwords are not stored.</span></div>
-                <div><strong>Role session</strong><span>Session stores id, name, email, role, and provider.</span></div>
-                <div><strong>Guest mode</strong><span>Guests can try the app without a saved database user.</span></div>
-            </div>
+            <?php if ($isAdmin): ?>
+                <h2>Admin Access Features</h2>
+                <div class="module-list">
+                    <div><strong>Role-gated panel</strong><span>Only admin sessions can open the admin console.</span></div>
+                    <div><strong>Controlled account creation</strong><span>Public registration creates users; admins can create elevated accounts.</span></div>
+                    <div><strong>Audit-friendly session</strong><span>Session stores id, name, email, role, and provider.</span></div>
+                </div>
+            <?php else: ?>
+                <h2>Access Features</h2>
+                <div class="module-list">
+                    <div><strong>Hashed password</strong><span>Plain passwords are not stored.</span></div>
+                    <div><strong>Role session</strong><span>Session stores id, name, email, role, and provider.</span></div>
+                    <div><strong>Guest mode</strong><span>Guests can try the app without a saved database user.</span></div>
+                </div>
+            <?php endif; ?>
         </article>
     </section>
 <?php endif; ?>

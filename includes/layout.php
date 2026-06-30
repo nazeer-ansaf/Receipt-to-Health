@@ -7,6 +7,17 @@ require_once __DIR__ . '/auth.php';
 
 function nav_items(): array
 {
+    if (is_admin_user()) {
+        return [
+            'admin' => ['label' => 'Admin Panel', 'href' => 'admin.php'],
+            'reports' => ['label' => 'Reports', 'href' => 'reports.php'],
+            'foods' => ['label' => 'Food Lookup', 'href' => 'food_database.php'],
+            'account' => ['label' => 'Account', 'href' => 'account.php'],
+            'setup' => ['label' => 'System Check', 'href' => 'setup_check.php'],
+            'method' => ['label' => 'Methodology', 'href' => 'methodology.php'],
+        ];
+    }
+
     $items = [
         'upload' => ['label' => 'Analyze', 'href' => 'index.php'],
         'profile' => ['label' => 'Profile', 'href' => 'profile_setup.php'],
@@ -20,21 +31,18 @@ function nav_items(): array
         'family' => ['label' => 'Family', 'href' => 'family.php'],
         'account' => ['label' => 'Account', 'href' => 'account.php'],
         'reports' => ['label' => 'Report', 'href' => 'reports.php'],
-        'admin' => ['label' => 'Admin', 'href' => 'admin.php'],
         'method' => ['label' => 'Methodology', 'href' => 'methodology.php'],
-        'setup' => ['label' => 'Setup', 'href' => 'setup_check.php'],
     ];
-
-    if (!is_admin_user()) {
-        unset($items['admin']);
-    }
 
     return $items;
 }
 
 function primary_nav_items(): array
 {
-    $primaryKeys = ['upload', 'profile', 'dashboard', 'analytics', 'history', 'reports'];
+    $primaryKeys = is_admin_user()
+        ? ['admin', 'reports', 'foods', 'account', 'setup']
+        : ['upload', 'profile', 'dashboard', 'analytics', 'history', 'reports'];
+
     return array_intersect_key(nav_items(), array_flip($primaryKeys));
 }
 
@@ -45,6 +53,16 @@ function secondary_nav_items(): array
 
 function quick_actions(): array
 {
+    if (is_admin_user()) {
+        return [
+            ['label' => 'Open Admin Panel', 'href' => 'admin.php'],
+            ['label' => 'Manage User Accounts', 'href' => 'admin.php#manage-users'],
+            ['label' => 'Manage Food Database', 'href' => 'admin.php#manage-food-database'],
+            ['label' => 'Review Generated Results', 'href' => 'admin.php#generated-results'],
+            ['label' => 'System Check', 'href' => 'setup_check.php'],
+        ];
+    }
+
     $actions = [
         ['label' => 'Start new analysis', 'href' => 'index.php'],
         ['label' => 'Try demo report', 'href' => 'api/demo_mode.php?mode=final'],
@@ -54,14 +72,29 @@ function quick_actions(): array
         ['label' => 'Fix detected items', 'href' => 'ocr_review.php'],
         ['label' => 'Open latest result', 'href' => 'dashboard.php'],
         ['label' => 'Print/PDF report', 'href' => 'reports.php'],
-        ['label' => 'System Check', 'href' => 'setup_check.php'],
     ];
 
-    if (is_admin_user()) {
-        $actions[] = ['label' => 'Admin Console', 'href' => 'admin.php'];
+    return $actions;
+}
+
+function role_home_href(?array $user = null): string
+{
+    $user = $user ?? current_user();
+
+    if (!$user) {
+        return 'index.php';
     }
 
-    return $actions;
+    return normalize_user_role((string)($user['role'] ?? 'user')) === 'admin'
+        ? 'admin.php'
+        : 'profile_setup.php';
+}
+
+function post_login_redirect_url(array $user): string
+{
+    return normalize_user_role((string)($user['role'] ?? 'user')) === 'admin'
+        ? 'admin.php'
+        : 'profile_setup.php?first=1';
 }
 
 function render_page_start(string $title, string $active = 'dashboard'): void
@@ -78,6 +111,10 @@ function render_page_start(string $title, string $active = 'dashboard'): void
     $isAuthPage = in_array($currentPage, ['login.php', 'register.php'], true);
     $htmlClass = $isAuthPage ? ' class="auth-page-root"' : '';
     $bodyClass = $isAuthPage ? ' class="auth-page' . ($currentPage === 'register.php' ? ' register-page' : '') . '"' : '';
+    $homeHref = $user ? role_home_href($user) : 'index.php';
+    $searchPlaceholder = $user && normalize_user_role((string)($user['role'] ?? 'user')) === 'admin'
+        ? 'Search users, foods, reports'
+        : 'Search reports, foods, modules';
     ?>
     <!doctype html>
     <html lang="en"<?= $htmlClass ?>>
@@ -92,7 +129,7 @@ function render_page_start(string $title, string $active = 'dashboard'): void
     <body<?= $bodyClass ?>>
         <header class="topbar">
             <div class="topbar-row">
-                <a class="brand" href="index.php">
+                <a class="brand" href="<?= e($homeHref) ?>">
                     <span class="brand-mark">R2H</span>
                     <span>
                         <strong><?= e(APP_NAME) ?></strong>
@@ -106,7 +143,7 @@ function render_page_start(string $title, string $active = 'dashboard'): void
                     </button>
 
                     <form class="nav-search" action="search.php" method="get" role="search">
-                        <input type="search" name="q" value="<?= e($_GET['q'] ?? '') ?>" placeholder="Search reports, foods, modules">
+                        <input type="search" name="q" value="<?= e($_GET['q'] ?? '') ?>" placeholder="<?= e($searchPlaceholder) ?>">
                     </form>
                 <?php endif; ?>
 
