@@ -100,7 +100,7 @@ function post_login_redirect_url(array $user): string
 function render_page_start(string $title, string $active = 'dashboard'): void
 {
     $currentPage = basename((string)($_SERVER['SCRIPT_NAME'] ?? ''));
-    $publicPages = ['login.php', 'register.php', 'setup_check.php'];
+    $publicPages = ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'setup_check.php'];
 
     if (!has_app_access() && !in_array($currentPage, $publicPages, true)) {
         header('Location: login.php');
@@ -108,7 +108,7 @@ function render_page_start(string $title, string $active = 'dashboard'): void
     }
 
     $user = current_user();
-    $isAuthPage = in_array($currentPage, ['login.php', 'register.php'], true);
+    $isAuthPage = in_array($currentPage, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php'], true);
     $htmlClass = $isAuthPage ? ' class="auth-page-root"' : '';
     $bodyClass = $isAuthPage ? ' class="auth-page' . ($currentPage === 'register.php' ? ' register-page' : '') . '"' : '';
     $homeHref = $user ? role_home_href($user) : 'index.php';

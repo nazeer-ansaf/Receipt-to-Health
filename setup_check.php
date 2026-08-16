@@ -58,6 +58,41 @@ $checks[] = [
         : ($pipelineOutput ?: 'No output'),
 ];
 
+$mlModelPath = ROOT_DIR . DIRECTORY_SEPARATOR . 'python' . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'food_classifier.joblib';
+$mlMetricsPath = ROOT_DIR . DIRECTORY_SEPARATOR . 'python' . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'food_classifier_metrics.json';
+$mlModelInfoPath = ROOT_DIR . DIRECTORY_SEPARATOR . 'python' . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'food_classifier_model.json';
+$mlDatasetPath = DATA_DIR . DIRECTORY_SEPARATOR . 'training_food_items.csv';
+$mlMetrics = is_file($mlMetricsPath) ? json_decode((string)file_get_contents($mlMetricsPath), true) : [];
+$mlModelInfo = is_file($mlModelInfoPath) ? json_decode((string)file_get_contents($mlModelInfoPath), true) : [];
+
+$checks[] = [
+    'label' => 'ML training dataset',
+    'ok' => is_file($mlDatasetPath) && filesize($mlDatasetPath) > 0,
+    'detail' => is_file($mlDatasetPath) ? $mlDatasetPath : 'Missing data/training_food_items.csv',
+];
+
+$checks[] = [
+    'label' => 'ML model file',
+    'ok' => is_file($mlModelPath) && filesize($mlModelPath) > 0,
+    'detail' => is_file($mlModelPath) ? $mlModelPath : 'Run python python/train_food_model.py',
+];
+
+$checks[] = [
+    'label' => 'ML model version',
+    'ok' => !empty($mlModelInfo['version']),
+    'detail' => !empty($mlModelInfo)
+        ? 'Version: ' . ($mlModelInfo['version'] ?? 'n/a') . ', rows: ' . ($mlModelInfo['dataset_rows'] ?? 'n/a')
+        : 'Missing food_classifier_model.json',
+];
+
+$checks[] = [
+    'label' => 'ML accuracy metrics',
+    'ok' => isset($mlMetrics['accuracy'], $mlMetrics['category_accuracy']),
+    'detail' => !empty($mlMetrics)
+        ? 'Item: ' . ($mlMetrics['accuracy'] ?? 'n/a') . ', category: ' . ($mlMetrics['category_accuracy'] ?? 'n/a')
+        : 'Missing food_classifier_metrics.json',
+];
+
 $dbDetail = '';
 $dbOk = false;
 try {
@@ -152,4 +187,3 @@ $checks[] = [
     </main>
 </body>
 </html>
-

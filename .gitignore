@@ -4,10 +4,14 @@ data/results/*
 !data/results/.gitkeep
 data/ocr_drafts/*
 !data/ocr_drafts/.gitkeep
+data/profiles/*
+data/sess_*
 data/medical_records/*
 !data/medical_records/.gitkeep
 !data/medical_records/.htaccess
 .env
 vendor/
 python/__pycache__/
+python/models/*
+!python/models/.gitkeep
 *.pyc

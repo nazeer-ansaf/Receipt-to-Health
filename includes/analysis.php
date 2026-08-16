@@ -181,3 +181,104 @@ function save_analysis_result(array $result, string $receiptId): void
     file_put_contents($resultPath, json_encode($result, JSON_PRETTY_PRINT));
     file_put_contents($latestPath, json_encode($result, JSON_PRETTY_PRINT));
 }
+
+function training_dataset_path(): string
+{
+    return DATA_DIR . DIRECTORY_SEPARATOR . 'training_food_items.csv';
+}
+
+function append_training_feedback(array $result, string $source = 'correction'): int
+{
+    $headers = [
+        'receipt_line',
+        'label',
+        'category',
+        'sugar_g',
+        'saturated_fat_g',
+        'sodium_mg',
+        'fiber_g',
+        'risk',
+        'recommendation',
+        'aliases',
+        'alternatives',
+    ];
+    $path = training_dataset_path();
+    ensure_directory(DATA_DIR);
+
+    $existingKeys = [];
+
+    if (is_file($path)) {
+        $handle = fopen($path, 'r');
+
+        if ($handle) {
+            $existingHeaders = fgetcsv($handle);
+
+            while (($row = fgetcsv($handle)) !== false) {
+                $receiptLine = strtolower(trim((string)($row[0] ?? '')));
+                $label = strtolower(trim((string)($row[1] ?? '')));
+
+                if ($receiptLine !== '' && $label !== '') {
+                    $existingKeys[$receiptLine . '|' . $label] = true;
+                }
+            }
+
+            fclose($handle);
+        }
+    }
+
+    $needsHeader = !is_file($path) || filesize($path) === 0;
+    $handle = fopen($path, 'a');
+
+    if (!$handle) {
+        return 0;
+    }
+
+    if ($needsHeader) {
+        fputcsv($handle, $headers);
+    }
+
+    $written = 0;
+
+    foreach (($result['items'] ?? []) as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+
+        $label = strtolower(trim((string)($item['name'] ?? '')));
+        $quantity = trim((string)($item['quantity'] ?? '1'));
+        $receiptLine = strtolower(trim((string)($item['training_receipt_line'] ?? $item['raw_line'] ?? '')));
+
+        if ($label === '') {
+            continue;
+        }
+
+        if ($receiptLine === '') {
+            $receiptLine = trim($label . ' ' . $quantity);
+        }
+
+        $key = $receiptLine . '|' . $label;
+
+        if (isset($existingKeys[$key])) {
+            continue;
+        }
+
+        fputcsv($handle, [
+            $receiptLine,
+            $label,
+            strtolower(trim((string)($item['category'] ?? ''))),
+            '',
+            '',
+            '',
+            '',
+            trim((string)($item['risk'] ?? '')),
+            '',
+            $label,
+            '',
+        ]);
+        $existingKeys[$key] = true;
+        $written++;
+    }
+
+    fclose($handle);
+    return $written;
+}

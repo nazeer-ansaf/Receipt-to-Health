@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="720" viewBox="0 0 1400 720">
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#526b73"/>
+  </marker>
+  <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+    <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#18323a" flood-opacity="0.12"/>
+  </filter>
+</defs>
+<rect width="100%" height="100%" fill="#f6faf9"/>
+<text x="700" y="48" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-weight="800" fill="#172b3a">
+<tspan x="700" dy="0">DFD Level 0</tspan>
+</text>
+<rect x="75" y="290" width="220" height="110" rx="16" fill="#eaf3ff" stroke="#1d4f91" stroke-width="2"/>
+<text x="185" y="351.4" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#172b3a">
+<tspan x="185" dy="0">User / Guest / Admin</tspan>
+</text>
+<ellipse cx="700" cy="345" rx="220" ry="85" fill="#eef8f5" stroke="#17806d" stroke-width="2"/>
+<text x="700" y="350.76" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#172b3a">
+<tspan x="700" dy="0">Receipt-to-Health System</tspan>
+</text>
+<rect x="1090" y="150" width="230" height="100" rx="16" fill="#fff8e5" stroke="#b7791f" stroke-width="2"/>
+<text x="1205" y="192.9" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#172b3a">
+<tspan x="1205" dy="0">Database and</tspan>
+<tspan x="1205" dy="27">File Storage</tspan>
+</text>
+<rect x="1090" y="460" width="230" height="100" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="1205" y="502.9" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#172b3a">
+<tspan x="1205" dy="0">Health Report</tspan>
+<tspan x="1205" dy="27">Dashboard / Export</tspan>
+</text>
+<line x1="295" y1="345" x2="480" y2="345" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="387" y="337" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="387" dy="0">profile, receipt,</tspan>
+<tspan x="387" dy="28">notes</tspan>
+</text>
+<line x1="920" y1="315" x2="1090" y2="210" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="1005" y="254" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="1005" dy="0">store data</tspan>
+</text>
+<line x1="1090" y1="250" x2="900" y2="340" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="995" y="287" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="995" dy="0">history and rules</tspan>
+</text>
+<line x1="910" y1="380" x2="1090" y2="505" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="1000" y="434" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="1000" dy="0">score and advice</tspan>
+</text>
+<line x1="1090" y1="510" x2="295" y2="380" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="692" y="437" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="692" dy="0">report output</tspan>
+</text>
+</svg>

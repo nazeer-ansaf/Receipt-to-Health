@@ -2,8 +2,208 @@ import argparse
 import json
 import math
 import os
+import pickle
 import re
 from collections import defaultdict
+from difflib import SequenceMatcher
+
+
+ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
+ML_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "food_classifier.joblib")
+ML_CONFIDENCE_THRESHOLD = 0.7
+ML_CATEGORY_SUGGESTION_THRESHOLD = 0.45
+ML_CLASSIFIER = None
+ML_CLASSIFIER_STATUS = {
+    "enabled": False,
+    "status": "not_loaded",
+    "model_path": ML_MODEL_PATH,
+    "message": "ML food classifier has not been loaded yet.",
+}
+ML_MODEL_BUNDLE = {}
+
+PRICE_PATTERN = re.compile(r"(?:[$£€]|rs\.?|lkr|usd)?\s*\d+[.,]\d{2}\b", re.IGNORECASE)
+PACKAGE_MEASURE_PATTERN = re.compile(
+    r"\b\d+(?:[.,]\d+)?\s*(?:kg|g|mg|l|ml|oz|lb|lbs|pcs|pc|ct|cl|pk|pack|packs)\b",
+    re.IGNORECASE,
+)
+LEADING_QUANTITY_PATTERN = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*(?:x|\*)?\s+[a-z]", re.IGNORECASE)
+INLINE_QUANTITY_PATTERN = re.compile(r"\b(?:x\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*x)\b", re.IGNORECASE)
+TRAILING_INTEGER_PATTERN = re.compile(r"\b(\d{1,3})\s*$")
+
+RECEIPT_METADATA_PATTERNS = [
+    re.compile(pattern, re.IGNORECASE)
+    for pattern in [
+        r"^(?:sub\s*)?total\b",
+        r"^cash\b",
+        r"^change\b",
+        r"^(?:card|credit|debit|payment|paid|balance)\b",
+        r"^(?:chip|chip\s*card|gift\s*card)\b",
+        r"^(?:net\s*)?sales\b",
+        r"^(?:savings?|returns?|refunds?)\b",
+        r"^(?:sold|items?)\b",
+        r"^(?:tax|vat|gst|service\s*charge)\b",
+        r"^discount\b",
+        r"^(?:receipt|invoice|transaction|trans|txn|reference|ref|auth|approval|terminal|merchant|cashier|operator|store|branch)\b",
+        r"^(?:date|time)\b",
+        r"^(?:feedback|survey|website|www|https?|please\s+visit|learn\s+more|go\s+to)\b",
+        r"^addi\s*tional\b",
+        r"^(?:prime|members?|amazon|visa|mastercard|amex|discover)\b",
+        r"\b(?:mastercard|card\s*aid|gift\s*card|prime\s*rewards|whole\s+foods\s+market|amazon|allazon|shopping\s+experience)\b",
+        r"\b\d+\s*(?:%?\s*)back\b",
+        r"\b(?:\.com|/returns|/feedback|http)\b",
+        r"x{4,}",
+        r"\boff\s*/?\s*lb\b",
+        r"^\d{3}[-\s]?\d{3}[-\s]?\d{4}$",
+        r"^(?:thank\s*you|thanks|goodbye|welcome|visit\s*again)\b",
+        r"^\*?\s*(?:thank\s*you|thanks)\b",
+    ]
+]
+RECEIPT_METADATA_TOKENS = {
+    "total",
+    "subtotal",
+    "cash",
+    "change",
+    "card",
+    "credit",
+    "debit",
+    "payment",
+    "chip",
+    "paid",
+    "tax",
+    "vat",
+    "gst",
+    "discount",
+    "receipt",
+    "invoice",
+    "transaction",
+    "txn",
+    "reference",
+    "ref",
+    "auth",
+    "aid",
+    "approval",
+    "sales",
+    "savings",
+    "saving",
+    "net",
+    "sold",
+    "items",
+    "item",
+    "paid",
+    "payment",
+    "mastercard",
+    "visa",
+    "returns",
+    "return",
+    "refund",
+    "feedback",
+    "website",
+    "market",
+    "prime",
+    "members",
+    "amazon",
+    "allazon",
+    "video",
+    "music",
+    "musict",
+    "bathroom",
+    "rathroom",
+    "additional",
+    "code",
+    "enter",
+}
+NON_FOOD_PHRASES = {
+    "wrapping paper",
+    "garden gloves",
+    "toilet paper",
+    "paper towel",
+    "paper towels",
+    "washing powder",
+    "dish soap",
+    "laundry detergent",
+}
+NON_FOOD_TOKENS = {
+    "gloves",
+    "detergent",
+    "soap",
+    "shampoo",
+    "conditioner",
+    "toothpaste",
+    "toothbrush",
+    "battery",
+    "batteries",
+    "napkins",
+    "tissues",
+    "tissue",
+    "foil",
+    "wrap",
+    "wrapping",
+    "cleaner",
+    "bleach",
+    "sponge",
+}
+GENERIC_ALIAS_TOKENS = {
+    "fresh",
+    "free",
+    "range",
+    "plain",
+    "gold",
+    "instant",
+    "assorted",
+    "salt",
+    "salted",
+    "sweet",
+    "low",
+    "fat",
+    "processed",
+    "mixed",
+    "pack",
+    "packet",
+    "bottle",
+    "carton",
+    "cup",
+    "tin",
+    "can",
+    "bag",
+    "box",
+    "family",
+    "large",
+    "small",
+    "organic",
+    "og",
+    "white",
+    "sliced",
+    "shredded",
+    "whole",
+    "wfm",
+    "365wfm",
+    "s65wfm",
+}
+OCR_TOKEN_REPLACEMENTS = {
+    "bf": "beef",
+    "chk": "chuck",
+    "ched": "cheddar",
+    "mshrm": "mushroom",
+    "mshrms": "mushrooms",
+    "slcd": "sliced",
+    "shred": "shredded",
+    "wht": "white",
+}
+OCR_NOISE_TOKENS = {
+    "365wfm",
+    "s65wfm",
+    "wfm",
+    "og",
+}
+ML_WEAK_EVIDENCE_TOKENS = {
+    "cream",
+    "meat",
+    "organic",
+    "white",
+    "sliced",
+    "shredded",
+    "pulp",
+}
 
 
 FOOD_GRAPH = {
@@ -91,7 +291,7 @@ FOOD_GRAPH.update({
         "recommendation": "Choose plain yogurt and add fresh fruit.",
     },
     "cheese": {
-        "aliases": ["cheese", "cheddar", "mozzarella"],
+        "aliases": ["cheese", "cheddar", "mozzarella", "cheddar cheese"],
         "category": "dairy",
         "sugar_g": 1,
         "saturated_fat_g": 6,
@@ -121,7 +321,7 @@ FOOD_GRAPH.update({
         "recommendation": "Choose low-sugar cereal with higher fiber.",
     },
     "juice": {
-        "aliases": ["juice", "orange juice", "fruit juice"],
+        "aliases": ["juice", "orange juice", "fruit juice", "orange no pulp", "orange pulp", "no pulp orange"],
         "category": "sugary drink",
         "sugar_g": 24,
         "saturated_fat_g": 0,
@@ -252,6 +452,109 @@ FOOD_GRAPH.update({
     },
 })
 
+FOOD_GRAPH.update({
+    "pasta": {
+        "aliases": ["pasta", "dry pasta", "organic pasta", "vodka pasta"],
+        "category": "grain",
+        "sugar_g": 1,
+        "saturated_fat_g": 0,
+        "sodium_mg": 5,
+        "fiber_g": 2,
+        "risk": "refined grain",
+        "recommendation": "Balance pasta with vegetables and protein.",
+    },
+    "beef stew meat": {
+        "aliases": ["beef stew meat", "beef chuck stew meat", "beef chuck", "stew meat"],
+        "category": "protein",
+        "sugar_g": 0,
+        "saturated_fat_g": 4,
+        "sodium_mg": 70,
+        "fiber_g": 0,
+        "risk": "moderate saturated fat protein",
+        "recommendation": "Use lean portions and balance beef with vegetables or beans.",
+    },
+    "heavy cream": {
+        "aliases": ["heavy cream", "organic heavy cream"],
+        "category": "dairy fat",
+        "sugar_g": 1,
+        "saturated_fat_g": 7,
+        "sodium_mg": 10,
+        "fiber_g": 0,
+        "risk": "high saturated fat dairy",
+        "recommendation": "Use heavy cream sparingly or choose lighter dairy when possible.",
+    },
+    "chicken sausage": {
+        "aliases": ["chicken sausage", "organic chicken sausage"],
+        "category": "processed meat",
+        "sugar_g": 1,
+        "saturated_fat_g": 4,
+        "sodium_mg": 520,
+        "fiber_g": 0,
+        "risk": "processed meat sodium",
+        "recommendation": "Limit chicken sausage and choose fresh protein more often.",
+    },
+    "cucumber": {
+        "aliases": ["cucumber", "english cucumber"],
+        "category": "vegetable",
+        "sugar_g": 2,
+        "saturated_fat_g": 0,
+        "sodium_mg": 2,
+        "fiber_g": 1,
+        "risk": "low risk",
+        "recommendation": "Keep cucumbers as a low-sodium vegetable option.",
+    },
+    "mushrooms": {
+        "aliases": ["mushrooms", "mushroom", "white sliced mushroom", "white sliced mushrooms"],
+        "category": "vegetable",
+        "sugar_g": 1,
+        "saturated_fat_g": 0,
+        "sodium_mg": 5,
+        "fiber_g": 1,
+        "risk": "low risk",
+        "recommendation": "Mushrooms add vegetable variety with low sodium.",
+    },
+    "shredded jack cheese": {
+        "aliases": ["shredded jack cheese", "cheddar jack shredded", "cheddar jack shred", "ched jack shred", "ched jack shredded"],
+        "category": "dairy",
+        "sugar_g": 1,
+        "saturated_fat_g": 6,
+        "sodium_mg": 360,
+        "fiber_g": 0,
+        "risk": "high sodium dairy",
+        "recommendation": "Use shredded cheese in smaller portions or compare lower-sodium options.",
+    },
+    "almond tortillas": {
+        "aliases": ["almond tortillas", "almond tortilla"],
+        "category": "grain alternative",
+        "sugar_g": 1,
+        "saturated_fat_g": 1,
+        "sodium_mg": 180,
+        "fiber_g": 2,
+        "risk": "packaged grain sodium",
+        "recommendation": "Check tortilla sodium and pair with vegetables and protein.",
+    },
+    "cassava tortillas": {
+        "aliases": ["cassava tortillas", "cassava tortilla"],
+        "category": "grain alternative",
+        "sugar_g": 1,
+        "saturated_fat_g": 1,
+        "sodium_mg": 180,
+        "fiber_g": 2,
+        "risk": "packaged grain sodium",
+        "recommendation": "Check tortilla sodium and balance with higher-fiber foods.",
+    },
+    "salmon fillet": {
+        "aliases": ["salmon fillet", "salmon filet"],
+        "category": "protein",
+        "sugar_g": 0,
+        "saturated_fat_g": 1,
+        "sodium_mg": 80,
+        "fiber_g": 0,
+        "risk": "low risk",
+        "recommendation": "Salmon is a strong protein choice with healthy fats.",
+    },
+})
+
 ANOMALY_BASELINES = {
     "soda": {"mean": 1.0, "std": 0.7},
     "chips": {"mean": 1.0, "std": 0.8},
@@ -325,8 +628,401 @@ def confidence_label(score):
     return "Low"
 
 
+def extract_receipt_metadata(text):
+    """Extract only explicit, low-risk store/date evidence; never infer values."""
+    lines = [re.sub(r"\s+", " ", line).strip(" *\t") for line in str(text or "").splitlines()]
+    store = ""
+    receipt_date = ""
+    date_patterns = [
+        re.compile(r"\b(20\d{2}[-/]\d{1,2}[-/]\d{1,2})\b"),
+        re.compile(r"\b(\d{1,2}[-/]\d{1,2}[-/]20\d{2})\b"),
+        re.compile(r"\b([A-Z][a-z]{2,9}\s+\d{1,2},\s+20\d{2})\b"),
+    ]
+    for line in lines:
+        if not line:
+            continue
+        labeled_store = re.search(r"^(?:store|merchant|shop|branch)\s*[:#-]?\s*(.{3,80})$", line, re.I)
+        if labeled_store and not is_receipt_metadata_line(labeled_store.group(1)):
+            store = labeled_store.group(1).strip()
+        if not store and len(lines) <= 40 and re.search(r"\b(?:market|foods?|grocery|supermarket)\b", line, re.I) and not is_receipt_metadata_line(line):
+            store = line[:80]
+        for pattern in date_patterns:
+            match = pattern.search(line)
+            if match:
+                receipt_date = match.group(1)
+                break
+        if store and receipt_date:
+            break
+    return {"store_name": store, "receipt_date": receipt_date}
+
+
 def current_ocr_confidence():
     return float(OCR_STATUS.get("confidence", 0.78))
+
+
+def normalize_receipt_text(value):
+    text = str(value or "").lower()
+    text = text.replace(")", "i").replace("!", "i").replace("|", "i")
+    text = re.sub(r"[^a-z0-9.,$£€ ]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def normalize_receipt_product_noise(value):
+    tokens = []
+
+    for token in receipt_words(value):
+        if token in OCR_NOISE_TOKENS:
+            continue
+
+        replacement = OCR_TOKEN_REPLACEMENTS.get(token, token)
+
+        if replacement:
+            tokens.append(replacement)
+
+    return " ".join(tokens)
+
+
+def receipt_words(value):
+    return re.findall(r"[a-z]{2,}", normalize_receipt_text(value))
+
+
+def strip_prices_and_measures(value):
+    text = normalize_receipt_text(value)
+    text = PRICE_PATTERN.sub(" ", text)
+    text = PACKAGE_MEASURE_PATTERN.sub(" ", text)
+    text = re.sub(r"\b\d+\b", " ", text)
+    return normalize_receipt_product_noise(re.sub(r"\s+", " ", text).strip())
+
+
+def is_receipt_metadata_line(line):
+    clean_line = normalize_receipt_text(line)
+
+    if not clean_line:
+        return True
+
+    if any(pattern.search(clean_line) for pattern in RECEIPT_METADATA_PATTERNS):
+        return True
+
+    words = receipt_words(clean_line)
+    if words and set(words).issubset(RECEIPT_METADATA_TOKENS):
+        return True
+
+    if len(words) == 1 and words[0] in RECEIPT_METADATA_TOKENS:
+        return True
+
+    if len(re.findall(r"\d", clean_line)) >= 7 and not strip_prices_and_measures(clean_line):
+        return True
+
+    if not words and re.search(r"\d", clean_line):
+        return True
+
+    return False
+
+
+def is_non_food_household_line(line):
+    product_text = strip_prices_and_measures(line)
+    if not product_text:
+        return False
+
+    if any(phrase in product_text for phrase in NON_FOOD_PHRASES):
+        return True
+
+    words = set(receipt_words(product_text))
+    return bool(words & NON_FOOD_TOKENS)
+
+
+def is_ignored_receipt_line(line):
+    if is_receipt_metadata_line(line):
+        return True
+
+    if not strip_prices_and_measures(line):
+        return True
+
+    return is_non_food_household_line(line)
+
+
+def extract_quantity(line):
+    clean_line = normalize_receipt_text(line)
+
+    leading_match = LEADING_QUANTITY_PATTERN.search(clean_line)
+    if leading_match:
+        return max(1.0, float(leading_match.group(1)))
+
+    inline_match = INLINE_QUANTITY_PATTERN.search(clean_line)
+    if inline_match:
+        quantity_text = inline_match.group(1) or inline_match.group(2)
+        return max(1.0, float(quantity_text))
+
+    without_price = PRICE_PATTERN.sub(" ", clean_line)
+    without_measures = PACKAGE_MEASURE_PATTERN.sub(" ", without_price)
+    trailing_match = TRAILING_INTEGER_PATTERN.search(without_measures)
+
+    if trailing_match:
+        return max(1.0, float(trailing_match.group(1)))
+
+    return 1.0
+
+
+def alias_tokens(alias):
+    return receipt_words(alias)
+
+
+def distinctive_alias_tokens(alias):
+    return [
+        token
+        for token in alias_tokens(alias)
+        if token not in GENERIC_ALIAS_TOKENS and len(token) >= 3
+    ]
+
+
+def deterministic_alias_score(product_text, alias):
+    line_text = strip_prices_and_measures(product_text)
+    alias_text = strip_prices_and_measures(alias)
+
+    if not line_text or not alias_text:
+        return 0.0
+
+    line_words = set(receipt_words(line_text))
+    alias_word_list = alias_tokens(alias_text)
+    distinctive_tokens = distinctive_alias_tokens(alias_text)
+
+    if line_text == alias_text:
+        return 1.0 + len(alias_word_list) * 0.02
+
+    if re.search(rf"\b{re.escape(alias_text)}\b", line_text):
+        return 0.94 + len(alias_word_list) * 0.02
+
+    if distinctive_tokens and all(token in line_words for token in distinctive_tokens):
+        return 0.88 + len(distinctive_tokens) * 0.02
+
+    if len(alias_word_list) == 1 and distinctive_tokens and distinctive_tokens[0] in line_words:
+        return 0.82
+
+    phrase_ratio = SequenceMatcher(None, line_text, alias_text).ratio()
+    if len(alias_word_list) > 1 and phrase_ratio >= 0.88:
+        return 0.74 + phrase_ratio * 0.1
+
+    if len(alias_word_list) == 1 and distinctive_tokens:
+        alias_token = distinctive_tokens[0]
+        for line_token in line_words:
+            if line_token[0] != alias_token[0]:
+                continue
+            if abs(len(line_token) - len(alias_token)) > 2:
+                continue
+            ratio = SequenceMatcher(None, line_token, alias_token).ratio()
+            if ratio >= 0.9:
+                return 0.72 + ratio * 0.08
+
+    return 0.0
+
+
+def find_deterministic_food_match(line):
+    product_text = strip_prices_and_measures(line)
+    best_match = None
+
+    for standard_name, data in FOOD_GRAPH.items():
+        aliases = sorted(set([standard_name, *data.get("aliases", [])]), key=len, reverse=True)
+
+        for alias in aliases:
+            score = deterministic_alias_score(product_text, alias)
+            if score <= 0:
+                continue
+
+            candidate = {
+                "name": standard_name,
+                "confidence": min(0.99, score),
+                "method": "exact_food_match" if strip_prices_and_measures(alias) == product_text else "rule_alias",
+                "alias": alias,
+                "alias_length": len(alias_tokens(alias)),
+            }
+
+            if best_match is None:
+                best_match = candidate
+                continue
+
+            if (candidate["confidence"], candidate["alias_length"]) > (best_match["confidence"], best_match["alias_length"]):
+                best_match = candidate
+
+    if best_match and best_match["confidence"] >= 0.72:
+        return best_match
+
+    return None
+
+
+def load_food_classifier():
+    global ML_CLASSIFIER, ML_CLASSIFIER_STATUS, ML_MODEL_BUNDLE
+
+    if ML_CLASSIFIER is not None:
+        return ML_CLASSIFIER
+
+    if not os.path.isfile(ML_MODEL_PATH):
+        ML_CLASSIFIER_STATUS = {
+            "enabled": False,
+            "status": "missing_model",
+            "model_path": ML_MODEL_PATH,
+            "message": "Train the model with python/train_food_model.py to enable ML item classification.",
+        }
+        return None
+
+    try:
+        with open(ML_MODEL_PATH, "rb") as model_file:
+            loaded_model = pickle.load(model_file)
+
+        if isinstance(loaded_model, dict) and "item_classifier" in loaded_model:
+            ML_MODEL_BUNDLE = loaded_model
+            ML_CLASSIFIER = loaded_model["item_classifier"]
+            model_version = loaded_model.get("model_version", {})
+        else:
+            ML_MODEL_BUNDLE = {"item_classifier": loaded_model}
+            ML_CLASSIFIER = loaded_model
+            model_version = {}
+
+        ML_CLASSIFIER_STATUS = {
+            "enabled": True,
+            "status": "loaded",
+            "model_path": ML_MODEL_PATH,
+            "version": model_version.get("version", "legacy"),
+            "trained_at": model_version.get("trained_at", ""),
+            "dataset_rows": model_version.get("dataset_rows", 0),
+            "message": "ML food classifier loaded successfully.",
+        }
+        return ML_CLASSIFIER
+    except Exception as exception:
+        ML_CLASSIFIER_STATUS = {
+            "enabled": False,
+            "status": "load_failed",
+            "model_path": ML_MODEL_PATH,
+            "message": str(exception),
+        }
+        return None
+
+
+def predict_food_item(line):
+    classifier = load_food_classifier()
+
+    if classifier is None:
+        return None
+
+    try:
+        if hasattr(classifier, "predict_one"):
+            label, confidence = classifier.predict_one(line)
+        else:
+            label = str(classifier.predict([line])[0])
+            confidence = 0.0
+
+            if hasattr(classifier, "predict_proba"):
+                probabilities = classifier.predict_proba([line])[0]
+                confidence = float(max(probabilities))
+            elif hasattr(classifier, "decision_function"):
+                scores = classifier.decision_function([line])
+                if hasattr(scores, "ravel"):
+                    flat_scores = scores.ravel()
+                    confidence = 1 / (1 + math.exp(-float(max(flat_scores))))
+
+        if label in FOOD_GRAPH and confidence >= ML_CONFIDENCE_THRESHOLD and ml_prediction_has_evidence(line, label):
+            return {
+                "name": label,
+                "confidence": round(confidence, 2),
+                "method": "ml_classifier",
+            }
+    except Exception as exception:
+        ML_CLASSIFIER_STATUS.update({
+            "enabled": False,
+            "status": "prediction_failed",
+            "message": str(exception),
+        })
+
+    return None
+
+
+def ml_prediction_has_evidence(line, label):
+    if is_ignored_receipt_line(line):
+        return False
+
+    line_tokens = [
+        token
+        for token in receipt_words(strip_prices_and_measures(line))
+        if (
+            token not in GENERIC_ALIAS_TOKENS
+            and token not in RECEIPT_METADATA_TOKENS
+            and token not in ML_WEAK_EVIDENCE_TOKENS
+        )
+    ]
+
+    if not line_tokens:
+        return False
+
+    aliases = FOOD_GRAPH.get(label, {}).get("aliases", [])
+    label_tokens = set()
+
+    for alias in [label, *aliases]:
+        label_tokens.update(
+            token
+            for token in distinctive_alias_tokens(alias)
+            if token not in ML_WEAK_EVIDENCE_TOKENS
+        )
+
+    if not label_tokens:
+        return False
+
+    if set(line_tokens) & label_tokens:
+        return True
+
+    for line_token in line_tokens:
+        for alias_token in label_tokens:
+            if line_token[0] != alias_token[0]:
+                continue
+
+            if len(line_token) >= 5 and len(alias_token) >= 5:
+                if line_token.startswith(alias_token) or alias_token.startswith(line_token):
+                    return True
+
+            if abs(len(line_token) - len(alias_token)) <= 2:
+                if SequenceMatcher(None, line_token, alias_token).ratio() >= 0.9:
+                    return True
+
+    return False
+
+
+def predict_food_category(line):
+    if is_ignored_receipt_line(line):
+        return None
+
+    product_tokens = [
+        token
+        for token in receipt_words(strip_prices_and_measures(line))
+        if token not in RECEIPT_METADATA_TOKENS and token not in GENERIC_ALIAS_TOKENS
+    ]
+
+    if len(product_tokens) < 2 or len("".join(product_tokens)) < 4:
+        return None
+
+    load_food_classifier()
+    category_classifier = ML_MODEL_BUNDLE.get("category_classifier")
+
+    if category_classifier is None or not hasattr(category_classifier, "predict_one"):
+        return None
+
+    try:
+        category, confidence = category_classifier.predict_one(line)
+
+        if category and confidence >= ML_CATEGORY_SUGGESTION_THRESHOLD:
+            return {
+                "line": line,
+                "predicted_category": category,
+                "confidence": round(confidence, 2),
+                "confidence_label": confidence_label(confidence),
+                "method": "ml_category_suggestion",
+                "suggestion_type": "suggested_category_only",
+                "message": "Suggested category only; no food item was accepted for scoring.",
+            }
+    except Exception as exception:
+        ML_CLASSIFIER_STATUS.update({
+            "status": "category_prediction_failed",
+            "message": str(exception),
+        })
+
+    return None
 
 
 def alternative_budget_details(replacements):
@@ -358,7 +1054,7 @@ def list_value(value):
 
 
 def load_catalog_overrides():
-    catalog_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "food_catalog.json")
+    catalog_path = os.path.join(ROOT_DIR, "data", "food_catalog.json")
 
     if not os.path.isfile(catalog_path):
         return
@@ -407,6 +1103,7 @@ def extract_text(input_path):
     global OCR_STATUS
     _, extension = os.path.splitext(input_path.lower())
     attempts = []
+    candidates = []
 
     if extension == ".txt":
         OCR_STATUS = {
@@ -440,18 +1137,19 @@ def extract_text(input_path):
         except Exception:
             confidence = 0.78 if extracted.strip() else 0.35
 
-        attempts.append({"engine": "pytesseract", "status": "success" if extracted.strip() else "empty_output"})
-        OCR_STATUS = {
+        confidence = max(0.0, min(1.0, confidence))
+        attempts.append({
             "engine": "pytesseract",
             "status": "success" if extracted.strip() else "empty_output",
-            "message": "Image OCR was processed with pytesseract.",
             "confidence": round(confidence, 2),
-            "confidence_label": confidence_label(confidence),
-            "attempts": attempts,
-        }
-
+            "text_length": len(extracted.strip()),
+        })
         if extracted.strip():
-            return extracted
+            candidates.append({
+                "engine": "pytesseract",
+                "text": extracted,
+                "confidence": confidence,
+            })
     except Exception as exception:
         attempts.append({
             "engine": "pytesseract",
@@ -478,24 +1176,38 @@ def extract_text(input_path):
 
         extracted = "\n".join(line for line in extracted_lines if line.strip())
         confidence = sum(confidences) / len(confidences) if confidences else (0.76 if extracted.strip() else 0.35)
-        attempts.append({"engine": "easyocr", "status": "success" if extracted.strip() else "empty_output"})
-        OCR_STATUS = {
+        confidence = max(0.0, min(1.0, confidence))
+        attempts.append({
             "engine": "easyocr",
             "status": "success" if extracted.strip() else "empty_output",
-            "message": "Image OCR was processed with EasyOCR after Tesseract was unavailable or empty.",
-            "confidence": round(max(0.0, min(1.0, confidence)), 2),
-            "confidence_label": confidence_label(max(0.0, min(1.0, confidence))),
-            "attempts": attempts,
-        }
+            "confidence": round(confidence, 2),
+            "text_length": len(extracted.strip()),
+        })
 
         if extracted.strip():
-            return extracted
+            candidates.append({
+                "engine": "easyocr",
+                "text": extracted,
+                "confidence": confidence,
+            })
     except Exception as exception:
         attempts.append({
             "engine": "easyocr",
             "status": "not_available",
             "message": str(exception),
         })
+
+    if candidates:
+        selected = max(candidates, key=lambda candidate: (candidate["confidence"], len(candidate["text"].strip())))
+        OCR_STATUS = {
+            "engine": selected["engine"],
+            "status": "success",
+            "message": "Image OCR was processed with pytesseract and EasyOCR when available; the best usable result was selected.",
+            "confidence": round(selected["confidence"], 2),
+            "confidence_label": confidence_label(selected["confidence"]),
+            "attempts": attempts,
+        }
+        return selected["text"]
 
     OCR_STATUS = {
         "engine": "demo_fallback",
@@ -522,23 +1234,42 @@ def alias_matches(line, alias):
 def normalize_items(text):
     found = defaultdict(float)
     evidence = {}
+    detection = {}
+    confidence_scores = defaultdict(list)
     unmatched_lines = []
+    unmatched_predictions = []
     lines = [line.strip().lower() for line in text.splitlines() if line.strip()]
 
     for line in lines:
-        quantity_match = re.search(r"(\d+(?:\.\d+)?)", line)
-        quantity = float(quantity_match.group(1)) if quantity_match else 1.0
-        matched_name = None
+        if is_ignored_receipt_line(line):
+            continue
 
-        for standard_name, data in FOOD_GRAPH.items():
-            if any(alias_matches(line, alias) for alias in data["aliases"]):
-                found[standard_name] += quantity
-                matched_name = standard_name
-                evidence.setdefault(standard_name, []).append(line)
-                break
+        quantity = extract_quantity(line)
+        deterministic_match = find_deterministic_food_match(line)
 
-        if matched_name is None:
-            unmatched_lines.append(line)
+        if deterministic_match is not None:
+            matched_name = deterministic_match["name"]
+            found[matched_name] += quantity
+            evidence.setdefault(matched_name, []).append(line)
+            detection.setdefault(matched_name, deterministic_match["method"])
+            confidence_scores[matched_name].append(current_ocr_confidence() * deterministic_match["confidence"])
+            continue
+
+        ml_match = predict_food_item(line)
+
+        if ml_match is not None:
+            matched_name = ml_match["name"]
+            found[matched_name] += quantity
+            evidence.setdefault(matched_name, []).append(line)
+            detection.setdefault(matched_name, ml_match["method"])
+            confidence_scores[matched_name].append(current_ocr_confidence() * ml_match["confidence"])
+            continue
+
+        unmatched_lines.append(line)
+        category_prediction = predict_food_category(line)
+
+        if category_prediction is not None:
+            unmatched_predictions.append(category_prediction)
 
     return [
         {
@@ -546,12 +1277,13 @@ def normalize_items(text):
             "quantity": round(quantity, 2),
             "category": FOOD_GRAPH[name]["category"],
             "risk": FOOD_GRAPH[name]["risk"],
-                "confidence": round(current_ocr_confidence() * 0.92, 2),
-                "confidence_label": confidence_label(current_ocr_confidence() * 0.92),
-                "raw_line": "; ".join(evidence.get(name, [])),
-            }
+            "confidence": round(max(confidence_scores.get(name, [current_ocr_confidence() * 0.92])), 2),
+            "confidence_label": confidence_label(max(confidence_scores.get(name, [current_ocr_confidence() * 0.92]))),
+            "detection_method": detection.get(name, "rule_alias"),
+            "raw_line": "; ".join(evidence.get(name, [])),
+        }
         for name, quantity in found.items()
-    ], unmatched_lines
+    ], unmatched_lines, unmatched_predictions
 
 
 def calculate_nutrition(items, family_size):
@@ -861,8 +1593,24 @@ def generate_recommendations(items, per_person, conditions, context_flags):
     recommendation_cards = []
     names = {item["name"] for item in items}
     item_map = {item["name"]: item for item in items}
+    categories_by_name = {item["name"]: item.get("category", "") for item in items}
+    risks_by_name = {item["name"]: item.get("risk", "") for item in items}
     conditions = set(conditions)
     context_keys = {flag["key"] for flag in context_flags}
+
+    def names_with_category(category):
+        return [
+            name
+            for name, item_category in categories_by_name.items()
+            if item_category == category
+        ]
+
+    def names_with_risk_text(term):
+        return [
+            name
+            for name, risk_text in risks_by_name.items()
+            if term in str(risk_text).lower()
+        ]
 
     def add_recommendation(advice, trigger, proof_points, item_names=None, alternatives=None):
         evidence_items = [
@@ -907,10 +1655,10 @@ def generate_recommendations(items, per_person, conditions, context_flags):
             ],
         )
     if per_person["sodium_mg"] > 700:
-        sodium_items = [
-            name for name in ["chips", "noodles", "sausages", "sauce", "cheese"]
+        sodium_items = sorted(set(
+            name for name in [*names_with_risk_text("sodium"), "chips", "noodles", "sausages", "sauce", "cheese"]
             if name in names
-        ]
+        ))
         add_recommendation(
             "Sodium is elevated. Limit chips and processed packaged foods.",
             "Nutrient threshold",
@@ -927,6 +1675,10 @@ def generate_recommendations(items, per_person, conditions, context_flags):
             ],
         )
     if per_person["fiber_g"] < 8:
+        fiber_items = [
+            name for name in ["vegetables", "apple", "banana", "orange", "oats", "beans", *names_with_category("vegetable")]
+            if name in names
+        ]
         add_recommendation(
             "Fiber is low. Add vegetables, fruits, oats, beans, or whole grains.",
             "Nutrient threshold",
@@ -935,7 +1687,7 @@ def generate_recommendations(items, per_person, conditions, context_flags):
                 "Target is at least 8 g per person for a safer receipt pattern.",
                 "Low fiber reduces the fiber component of the health score.",
             ],
-            [name for name in ["vegetables", "apple", "banana", "orange", "oats", "beans"] if name in names],
+            sorted(set(fiber_items)),
         )
     if "diabetes" in conditions and "soda" in names:
         add_recommendation(
@@ -961,7 +1713,7 @@ def generate_recommendations(items, per_person, conditions, context_flags):
             ["chips"],
             [{"replace": "chips", "with": SHOPPING_ALTERNATIVES["chips"]}],
         )
-    if "vegetables" not in names:
+    if not names_with_category("vegetable"):
         add_recommendation(
             "Add at least one vegetable item to improve nutrient diversity.",
             "Missing food group",
@@ -983,17 +1735,21 @@ def generate_recommendations(items, per_person, conditions, context_flags):
             ["noodles"],
             [{"replace": "noodles", "with": SHOPPING_ALTERNATIVES["noodles"]}],
         )
-    if "sausages" in names:
+    processed_meat_items = sorted(set([*names_with_category("processed meat"), *([ "sausages" ] if "sausages" in names else [])]))
+    if processed_meat_items:
         add_recommendation(
             "Processed meats increase sodium and saturated fat exposure. Prefer fresh protein.",
             "Item risk rule",
             [
-                "Sausages were detected in the receipt.",
-                "The knowledge graph maps sausages to processed meat sodium risk.",
+                "Processed meat was detected in the receipt.",
+                "The knowledge graph maps processed meat to sodium and saturated fat risk.",
                 "Processed meat also contributes saturated fat exposure.",
             ],
-            ["sausages"],
-            [{"replace": "sausages", "with": SHOPPING_ALTERNATIVES["sausages"]}],
+            processed_meat_items,
+            [
+                {"replace": name, "with": SHOPPING_ALTERNATIVES.get(name, SHOPPING_ALTERNATIVES["sausages"])}
+                for name in processed_meat_items
+            ],
         )
     if {"cookies", "chocolate"} & names:
         sweet_items = [name for name in ["cookies", "chocolate"] if name in names]
@@ -1037,8 +1793,11 @@ def generate_recommendations(items, per_person, conditions, context_flags):
             ],
         )
 
-    if "low_salt" in context_keys and (per_person["sodium_mg"] > 500 or {"chips", "noodles", "sausages", "sauce"} & names):
-        sodium_items = [name for name in ["chips", "noodles", "sausages", "sauce"] if name in names]
+    if "low_salt" in context_keys and (per_person["sodium_mg"] > 500 or {"chips", "noodles", "sausages", "sauce"} & names or names_with_risk_text("sodium")):
+        sodium_items = sorted(set(
+            name for name in [*names_with_risk_text("sodium"), "chips", "noodles", "sausages", "sauce"]
+            if name in names
+        ))
         add_recommendation(
             "Low-salt context is noted. Choose lower-sodium alternatives for salty packaged foods.",
             "User context proof",
@@ -1121,7 +1880,8 @@ def main():
     ]
 
     extracted_text = extract_text(args.input)
-    items, unmatched_lines = normalize_items(extracted_text)
+    load_food_classifier()
+    items, unmatched_lines, unmatched_predictions = normalize_items(extracted_text)
     totals, per_person = calculate_nutrition(items, args.family_size)
     context_flags = parse_health_notes(args.health_notes)
     score = calculate_score(per_person, args.age_group, conditions, context_flags)
@@ -1141,6 +1901,7 @@ def main():
             "conditions": conditions,
         },
         "extracted_text": extracted_text.strip(),
+        "receipt_metadata": extract_receipt_metadata(extracted_text),
         "ocr_status": OCR_STATUS,
         "health_note_analysis": {
             "raw_notes": args.health_notes,
@@ -1148,6 +1909,7 @@ def main():
         },
         "items": items,
         "unmatched_lines": unmatched_lines,
+        "unmatched_line_predictions": unmatched_predictions,
         "category_distribution": category_distribution,
         "totals_nutrition": {
             key: round(value, 2)
@@ -1163,10 +1925,13 @@ def main():
         },
         "anomalies": anomalies,
         "risk_summary": risk_summary,
+        "ml_classification": ML_CLASSIFIER_STATUS,
         "recommendations": recommendations,
         "recommendation_proofs": recommendation_proofs,
         "shopping_alternatives": alternatives,
         "models": {
+            "item_classification": "Character n-gram Naive Bayes ML classifier is used only for high-confidence unmatched receipt lines when a trained model is available.",
+            "category_fallback": "Lower-confidence ML output is shown only as a suggested category and is not scored as a food item.",
             "scoring": "Weighted component model using sugar, saturated fat, sodium, fiber, and diversity.",
             "normalization": "Receipt nutrient totals are divided by family size.",
             "anomaly_detection": "Z = (X - mean) / standard deviation; absolute values >= 2 are flagged.",
@@ -1175,6 +1940,7 @@ def main():
         "pipeline_layers": [
             "OCR extraction",
             "NLP normalization",
+            "ML food item classification",
             "Nutrition knowledge graph",
             "Weighted health scoring",
             "Time-series trend analysis",

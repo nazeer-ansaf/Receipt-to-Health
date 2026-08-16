@@ -13,6 +13,8 @@ if (!has_app_access()) {
     json_response(['error' => 'Login or guest mode is required before analysis.'], 403);
 }
 
+require_valid_csrf_token();
+
 $receiptText = trim((string)($_POST['receipt_text'] ?? ''));
 
 if ($receiptText === '') {
@@ -76,6 +78,10 @@ $result['profile_context'] = [
     ))),
 ];
 $result['profile_analysis'] = $profileAnalysis;
+$result['training_feedback'] = [
+    'source' => 'manual_text_correction',
+    'rows_added' => append_training_feedback($result, 'manual_text_correction'),
+];
 persist_analysis_result($result, $textPath, current_user_id());
 save_analysis_result($result, $receiptId);
 

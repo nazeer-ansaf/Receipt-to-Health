@@ -12,6 +12,10 @@ if (!has_app_access()) {
 }
 
 try {
+    if (!is_valid_csrf_token((string)($_POST['csrf_token'] ?? ''))) {
+        throw new InvalidArgumentException('Security token expired. Please refresh the page and try again.');
+    }
+
     if (!isset($_FILES['medical_record']) || !is_array($_FILES['medical_record'])) {
         throw new InvalidArgumentException('Please choose a medical record to upload.');
     }

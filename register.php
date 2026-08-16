@@ -1,51 +1,56 @@
 <?php
 require_once __DIR__ . '/includes/layout.php';
+require_once __DIR__ . '/includes/google_auth.php';
 
 $error = '';
 if (current_user()) {
-    header('Location: profile_setup.php');
+    header('Location: ' . role_home_href(current_user()));
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string)($_POST['action'] ?? 'register');
 
-    if ($action === 'guest') {
-        login_guest();
-        header('Location: profile_setup.php?first=1');
-        exit;
-    }
+    if (!is_valid_csrf_token((string)($_POST['csrf_token'] ?? ''))) {
+        $error = 'Security token expired. Please refresh the page and try again.';
+    } else {
+        if ($action === 'guest') {
+            login_guest();
+            header('Location: profile_setup.php?first=1');
+            exit;
+        }
 
-    if ($action === 'social') {
-        try {
-            $user = login_or_create_social_user((string)($_POST['provider'] ?? 'google'));
+        if ($action === 'google') {
+            try {
+                $user = google_authenticate_id_token((string)($_POST['credential'] ?? ''));
+                login_user($user);
+                header('Location: ' . post_login_redirect_url($user));
+                exit;
+            } catch (Throwable $exception) {
+                $error = 'Google Login could not be completed. Please try again.';
+            }
+        }
+
+        $name = trim((string)($_POST['name'] ?? ''));
+        $email = trim((string)($_POST['email'] ?? ''));
+        $password = (string)($_POST['password'] ?? '');
+        $role = 'user';
+        $matchingLogin = $name !== '' ? find_user_by_login_identifier($name) : null;
+
+        if ($action === 'register' && ($name === '' || $email === '' || strlen($password) < 6)) {
+            $error = 'Enter a name, valid email, and password with at least 6 characters.';
+        } elseif ($action === 'register' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Enter a valid email address.';
+        } elseif ($action === 'register' && find_user_by_email($email)) {
+            $error = 'An account already exists for this email.';
+        } elseif ($action === 'register' && $matchingLogin && strcasecmp((string)($matchingLogin['name'] ?? ''), $name) === 0) {
+            $error = 'An account already exists for this username.';
+        } elseif ($action === 'register') {
+            $user = register_user($name, $email, $password, $role);
             login_user($user);
             header('Location: profile_setup.php?first=1');
             exit;
-        } catch (Throwable $exception) {
-            $error = 'Social demo login could not start: ' . $exception->getMessage();
         }
-    }
-
-    $name = trim((string)($_POST['name'] ?? ''));
-    $email = trim((string)($_POST['email'] ?? ''));
-    $password = (string)($_POST['password'] ?? '');
-    $role = 'user';
-    $matchingLogin = $name !== '' ? find_user_by_login_identifier($name) : null;
-
-    if ($action === 'register' && ($name === '' || $email === '' || strlen($password) < 6)) {
-        $error = 'Enter a name, valid email, and password with at least 6 characters.';
-    } elseif ($action === 'register' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Enter a valid email address.';
-    } elseif ($action === 'register' && find_user_by_email($email)) {
-        $error = 'An account already exists for this email.';
-    } elseif ($action === 'register' && $matchingLogin && strcasecmp((string)($matchingLogin['name'] ?? ''), $name) === 0) {
-        $error = 'An account already exists for this username.';
-    } elseif ($action === 'register') {
-        $user = register_user($name, $email, $password, $role);
-        login_user($user);
-        header('Location: profile_setup.php?first=1');
-        exit;
     }
 }
 
@@ -108,6 +113,7 @@ render_page_start('Register', 'account');
                 <?php if ($error): ?><p class="warning-text"><?= e($error) ?></p><?php endif; ?>
 
                 <form method="post" class="auth-form register-form">
+                    <?= csrf_field() ?>
                     <input type="hidden" name="action" value="register">
 
                     <div class="auth-field-grid">
@@ -137,8 +143,20 @@ render_page_start('Register', 'account');
                         <h2>Try a demo workspace</h2>
                     </div>
                     <div class="social-buttons auth-social-buttons">
-                        <?php foreach (['google' => 'Google', 'github' => 'GitHub', 'microsoft' => 'Microsoft'] as $provider => $label): ?>
+                        <div class="google-login-widget">
+                            <?php if (GOOGLE_CLIENT_ID !== ''): ?>
+                                <div id="g_id_onload" data-client_id="<?= e(GOOGLE_CLIENT_ID) ?>" data-callback="handleGoogleCredential" data-auto_prompt="false"></div>
+                                <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="continue_with" data-shape="rectangular" data-logo_alignment="left" data-width="220"></div>
+                                <form id="google-auth-form" method="post" hidden>
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="action" value="google">
+                                    <input type="hidden" name="credential" id="google-credential">
+                                </form>
+                            <?php endif; ?>
+                        </div>
+                        <?php foreach (['github' => 'GitHub', 'microsoft' => 'Microsoft'] as $provider => $label): ?>
                             <form method="post">
+                                <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="social">
                                 <input type="hidden" name="provider" value="<?= e($provider) ?>">
                                 <button class="button social <?= e($provider) ?>" type="submit"><?= e($label) ?></button>
@@ -153,6 +171,7 @@ render_page_start('Register', 'account');
                         <h2>Guest access</h2>
                     </div>
                     <form method="post" class="guest-form">
+                        <?= csrf_field() ?>
                         <input type="hidden" name="action" value="guest">
                         <button class="button ghost auth-guest-button" type="submit">Continue as guest</button>
                     </form>
@@ -162,5 +181,8 @@ render_page_start('Register', 'account');
         </section>
     </div>
 </section>
+
+<script src="assets/js/google-auth.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <?php render_page_end(); ?>

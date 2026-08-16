@@ -13,8 +13,11 @@ if (!has_app_access()) {
     json_response(['error' => 'Login or guest mode is required before analysis.'], 403);
 }
 
+require_valid_csrf_token();
+
 $names = $_POST['item_name'] ?? [];
 $quantities = $_POST['quantity'] ?? [];
+$rawLines = $_POST['raw_line'] ?? [];
 
 if (!is_array($names) || !is_array($quantities)) {
     json_response(['error' => 'Corrected items are required.'], 422);
@@ -22,12 +25,15 @@ if (!is_array($names) || !is_array($quantities)) {
 
 $lines = [];
 $editedItems = [];
+$originalRawLineByName = [];
 
 foreach ($names as $index => $name) {
     $cleanName = strtolower(trim((string)$name));
     $cleanName = preg_replace('/[^a-zA-Z0-9 _-]/', '', $cleanName);
     $cleanName = preg_replace('/\s+/', ' ', $cleanName ?? '');
     $quantity = max(0, (float)($quantities[$index] ?? 0));
+    $originalRawLine = is_array($rawLines) ? strtolower(trim((string)($rawLines[$index] ?? ''))) : '';
+    $originalRawLine = preg_replace('/\s+/', ' ', $originalRawLine ?? '');
 
     if ($cleanName === '' || $quantity <= 0) {
         continue;
@@ -35,7 +41,11 @@ foreach ($names as $index => $name) {
 
     $formattedQuantity = rtrim(rtrim(number_format($quantity, 2, '.', ''), '0'), '.');
     $lines[] = trim($cleanName . ' ' . $formattedQuantity);
-    $editedItems[] = ['name' => $cleanName, 'quantity' => $quantity];
+    $editedItems[] = ['name' => $cleanName, 'quantity' => $quantity, 'original_raw_line' => $originalRawLine];
+
+    if ($originalRawLine !== '') {
+        $originalRawLineByName[$cleanName] = $originalRawLine;
+    }
 }
 
 $extraText = trim((string)($_POST['extra_receipt_text'] ?? ''));
@@ -91,6 +101,19 @@ try {
 
 $result['receipt_id'] = $receiptId;
 $result['source_type'] = 'manual_item_correction';
+
+foreach (($result['items'] ?? []) as $index => $item) {
+    if (!is_array($item)) {
+        continue;
+    }
+
+    $itemName = strtolower(trim((string)($item['name'] ?? '')));
+
+    if ($itemName !== '' && isset($originalRawLineByName[$itemName])) {
+        $result['items'][$index]['training_receipt_line'] = $originalRawLineByName[$itemName];
+    }
+}
+
 $result['correction_context'] = [
     'draft_id' => $draftId,
     'edited_items' => $editedItems,
@@ -119,6 +142,10 @@ $result['profile_context'] = [
     ))),
 ];
 $result['profile_analysis'] = $profileAnalysis;
+$result['training_feedback'] = [
+    'source' => 'manual_item_correction',
+    'rows_added' => append_training_feedback($result, 'manual_item_correction'),
+];
 
 persist_analysis_result($result, $textPath, current_user_id());
 save_analysis_result($result, $receiptId);

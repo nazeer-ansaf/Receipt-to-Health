@@ -1,27 +1,511 @@
 [
-  {"name":"milk","category":"dairy","sugar_g":12,"saturated_fat_g":3,"sodium_mg":100,"fiber_g":0,"risk":"moderate dairy sugar","recommendation":"Choose low-fat unsweetened milk."},
-  {"name":"yogurt","category":"dairy","sugar_g":17,"saturated_fat_g":2,"sodium_mg":85,"fiber_g":0,"risk":"sweetened dairy risk","recommendation":"Choose plain yogurt and add fresh fruit."},
-  {"name":"cheese","category":"dairy","sugar_g":1,"saturated_fat_g":6,"sodium_mg":350,"fiber_g":0,"risk":"high sodium dairy","recommendation":"Use smaller portions or reduced-sodium cheese."},
-  {"name":"bread","category":"grain","sugar_g":3,"saturated_fat_g":1,"sodium_mg":180,"fiber_g":1,"risk":"refined carbohydrate","recommendation":"Replace some white bread with whole-grain bread."},
-  {"name":"rice","category":"grain","sugar_g":0,"saturated_fat_g":0,"sodium_mg":2,"fiber_g":1,"risk":"low fiber grain","recommendation":"Balance rice with vegetables and protein."},
-  {"name":"oats","category":"whole grain","sugar_g":1,"saturated_fat_g":1,"sodium_mg":2,"fiber_g":4,"risk":"low risk","recommendation":"Keep oats as a high-fiber breakfast option."},
-  {"name":"cereal","category":"breakfast","sugar_g":15,"saturated_fat_g":1,"sodium_mg":220,"fiber_g":2,"risk":"added sugar breakfast","recommendation":"Choose low-sugar cereal with higher fiber."},
-  {"name":"soda","category":"sugary drink","sugar_g":39,"saturated_fat_g":0,"sodium_mg":45,"fiber_g":0,"risk":"high sugar","recommendation":"Replace soda with water or unsweetened tea."},
-  {"name":"juice","category":"sugary drink","sugar_g":24,"saturated_fat_g":0,"sodium_mg":10,"fiber_g":0,"risk":"liquid sugar","recommendation":"Prefer whole fruit over juice."},
-  {"name":"chips","category":"snack","sugar_g":1,"saturated_fat_g":3,"sodium_mg":220,"fiber_g":1,"risk":"high sodium snack","recommendation":"Limit salty snacks and add fruit, nuts, or yogurt."},
-  {"name":"cookies","category":"sweet snack","sugar_g":14,"saturated_fat_g":5,"sodium_mg":120,"fiber_g":1,"risk":"high sugar snack","recommendation":"Reduce sweet packaged snacks."},
-  {"name":"chocolate","category":"sweet snack","sugar_g":24,"saturated_fat_g":8,"sodium_mg":30,"fiber_g":2,"risk":"high sugar and saturated fat","recommendation":"Keep chocolate as an occasional item."},
-  {"name":"apple","category":"fruit","sugar_g":19,"saturated_fat_g":0,"sodium_mg":2,"fiber_g":4,"risk":"low risk","recommendation":"Keep fruit as a regular purchase."},
-  {"name":"banana","category":"fruit","sugar_g":14,"saturated_fat_g":0,"sodium_mg":1,"fiber_g":3,"risk":"low risk","recommendation":"Use bananas as a convenient fiber-rich snack."},
-  {"name":"orange","category":"fruit","sugar_g":12,"saturated_fat_g":0,"sodium_mg":0,"fiber_g":3,"risk":"low risk","recommendation":"Add citrus fruit for micronutrient diversity."},
-  {"name":"vegetables","category":"vegetable","sugar_g":4,"saturated_fat_g":0,"sodium_mg":35,"fiber_g":5,"risk":"low risk","recommendation":"Increase vegetable variety and frequency."},
-  {"name":"beans","category":"legume","sugar_g":1,"saturated_fat_g":0,"sodium_mg":5,"fiber_g":8,"risk":"low risk","recommendation":"Beans improve fiber and plant protein."},
-  {"name":"chicken","category":"protein","sugar_g":0,"saturated_fat_g":2,"sodium_mg":70,"fiber_g":0,"risk":"low risk","recommendation":"Choose grilled or boiled chicken more often."},
-  {"name":"fish","category":"protein","sugar_g":0,"saturated_fat_g":1,"sodium_mg":80,"fiber_g":0,"risk":"low risk","recommendation":"Fish adds protein and healthy fats."},
-  {"name":"sausages","category":"processed meat","sugar_g":2,"saturated_fat_g":7,"sodium_mg":650,"fiber_g":0,"risk":"processed meat sodium","recommendation":"Limit processed meats and choose fresh protein."},
-  {"name":"noodles","category":"processed grain","sugar_g":2,"saturated_fat_g":7,"sodium_mg":850,"fiber_g":2,"risk":"high sodium instant food","recommendation":"Reduce instant noodles and add vegetables if used."},
-  {"name":"sauce","category":"condiment","sugar_g":8,"saturated_fat_g":0,"sodium_mg":500,"fiber_g":0,"risk":"hidden sugar and sodium","recommendation":"Use sauces sparingly."},
-  {"name":"oil","category":"fat","sugar_g":0,"saturated_fat_g":2,"sodium_mg":0,"fiber_g":0,"risk":"high energy density","recommendation":"Measure oil portions while cooking."},
-  {"name":"nuts","category":"healthy fat","sugar_g":2,"saturated_fat_g":2,"sodium_mg":5,"fiber_g":3,"risk":"low risk","recommendation":"Choose unsalted nuts for healthy fats."}
+  {
+    "name": "almond tortillas",
+    "category": "grain alternative",
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180,
+    "fiber_g": 2,
+    "risk": "packaged grain sodium",
+    "recommendation": "Check tortilla sodium and pair with vegetables and protein.",
+    "aliases": [
+      "almond tortillas",
+      "almond tortilla"
+    ]
+  },
+  {
+    "name": "apple",
+    "category": "fruit",
+    "sugar_g": 19,
+    "saturated_fat_g": 0,
+    "sodium_mg": 2,
+    "fiber_g": 4,
+    "risk": "low risk",
+    "recommendation": "Keep fruit as a regular purchase.",
+    "aliases": [
+      "apple"
+    ]
+  },
+  {
+    "name": "banana",
+    "category": "fruit",
+    "sugar_g": 14,
+    "saturated_fat_g": 0,
+    "sodium_mg": 1,
+    "fiber_g": 3,
+    "risk": "low risk",
+    "recommendation": "Use bananas as a convenient fiber-rich snack."
+  },
+  {
+    "name": "beans",
+    "category": "legume",
+    "sugar_g": 1,
+    "saturated_fat_g": 0,
+    "sodium_mg": 5,
+    "fiber_g": 8,
+    "risk": "low risk",
+    "recommendation": "Beans improve fiber and plant protein."
+  },
+  {
+    "name": "beef stew meat",
+    "category": "protein",
+    "sugar_g": 0,
+    "saturated_fat_g": 4,
+    "sodium_mg": 70,
+    "fiber_g": 0,
+    "risk": "moderate saturated fat protein",
+    "recommendation": "Use lean portions and balance beef with vegetables or beans.",
+    "aliases": [
+      "beef stew meat",
+      "beef chuck stew meat",
+      "beef chuck",
+      "stew meat"
+    ]
+  },
+  {
+    "name": "bread",
+    "category": "grain",
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180,
+    "fiber_g": 1,
+    "risk": "refined carbohydrate",
+    "recommendation": "Replace some white bread with whole-grain bread.",
+    "aliases": [
+      "bread"
+    ]
+  },
+  {
+    "name": "buttermilk dessert",
+    "category": "dairy dessert",
+    "sugar_g": 16,
+    "saturated_fat_g": 2,
+    "sodium_mg": 80,
+    "fiber_g": 0,
+    "risk": "sweetened dairy dessert",
+    "recommendation": "Keep sweetened dairy desserts occasional or choose plain yogurt.",
+    "aliases": [
+      "buttermilk dessert",
+      "buttermilk",
+      "dairy dessert"
+    ]
+  },
+  {
+    "name": "cassava tortillas",
+    "category": "grain alternative",
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180,
+    "fiber_g": 2,
+    "risk": "packaged grain sodium",
+    "recommendation": "Check tortilla sodium and balance with higher-fiber foods.",
+    "aliases": [
+      "cassava tortillas",
+      "cassava tortilla"
+    ]
+  },
+  {
+    "name": "cereal",
+    "category": "breakfast",
+    "sugar_g": 15,
+    "saturated_fat_g": 1,
+    "sodium_mg": 220,
+    "fiber_g": 2,
+    "risk": "added sugar breakfast",
+    "recommendation": "Choose low-sugar cereal with higher fiber."
+  },
+  {
+    "name": "cheese",
+    "category": "dairy",
+    "sugar_g": 1,
+    "saturated_fat_g": 6,
+    "sodium_mg": 350,
+    "fiber_g": 0,
+    "risk": "high sodium dairy",
+    "recommendation": "Use smaller portions or reduced-sodium cheese."
+  },
+  {
+    "name": "chicken",
+    "category": "protein",
+    "sugar_g": 0,
+    "saturated_fat_g": 2,
+    "sodium_mg": 70,
+    "fiber_g": 0,
+    "risk": "low risk",
+    "recommendation": "Choose grilled or boiled chicken more often."
+  },
+  {
+    "name": "chicken sausage",
+    "category": "processed meat",
+    "sugar_g": 1,
+    "saturated_fat_g": 4,
+    "sodium_mg": 520,
+    "fiber_g": 0,
+    "risk": "processed meat sodium",
+    "recommendation": "Limit chicken sausage and choose fresh protein more often.",
+    "aliases": [
+      "chicken sausage",
+      "organic chicken sausage"
+    ]
+  },
+  {
+    "name": "chips",
+    "category": "snack",
+    "sugar_g": 1,
+    "saturated_fat_g": 3,
+    "sodium_mg": 220,
+    "fiber_g": 1,
+    "risk": "high sodium snack",
+    "recommendation": "Limit salty snacks and add fruit, nuts, or yogurt.",
+    "aliases": [
+      "chips"
+    ]
+  },
+  {
+    "name": "chocolate",
+    "category": "sweet snack",
+    "sugar_g": 24,
+    "saturated_fat_g": 8,
+    "sodium_mg": 30,
+    "fiber_g": 2,
+    "risk": "high sugar and saturated fat",
+    "recommendation": "Keep chocolate as an occasional item."
+  },
+  {
+    "name": "coffee",
+    "category": "beverage",
+    "sugar_g": 0,
+    "saturated_fat_g": 0,
+    "sodium_mg": 5,
+    "fiber_g": 0,
+    "risk": "low risk",
+    "recommendation": "Choose unsweetened coffee and watch added sugar or creamer.",
+    "aliases": [
+      "coffee",
+      "instant coffee",
+      "instant coffee gold",
+      "coffee gold"
+    ]
+  },
+  {
+    "name": "cookies",
+    "category": "sweet snack",
+    "sugar_g": 14,
+    "saturated_fat_g": 5,
+    "sodium_mg": 120,
+    "fiber_g": 1,
+    "risk": "high sugar snack",
+    "recommendation": "Reduce sweet packaged snacks."
+  },
+  {
+    "name": "crackers",
+    "category": "snack",
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180,
+    "fiber_g": 1,
+    "risk": "salty refined snack",
+    "recommendation": "Choose whole-grain or lower-salt crackers when possible.",
+    "aliases": [
+      "crackers",
+      "rice crackers",
+      "salt crackers",
+      "rice crackers salt"
+    ]
+  },
+  {
+    "name": "cucumber",
+    "category": "vegetable",
+    "sugar_g": 2,
+    "saturated_fat_g": 0,
+    "sodium_mg": 2,
+    "fiber_g": 1,
+    "risk": "low risk",
+    "recommendation": "Keep cucumbers as a low-sodium vegetable option.",
+    "aliases": [
+      "cucumber",
+      "english cucumber"
+    ]
+  },
+  {
+    "name": "eggs",
+    "category": "protein",
+    "sugar_g": 0,
+    "saturated_fat_g": 2,
+    "sodium_mg": 70,
+    "fiber_g": 0,
+    "risk": "low risk",
+    "recommendation": "Eggs can be a useful protein source; balance with vegetables and whole grains.",
+    "aliases": [
+      "egg",
+      "eggs",
+      "free range eggs",
+      "free-range eggs"
+    ]
+  },
+  {
+    "name": "fish",
+    "category": "protein",
+    "sugar_g": 0,
+    "saturated_fat_g": 1,
+    "sodium_mg": 80,
+    "fiber_g": 0,
+    "risk": "low risk",
+    "recommendation": "Fish adds protein and healthy fats."
+  },
+  {
+    "name": "heavy cream",
+    "category": "dairy fat",
+    "sugar_g": 1,
+    "saturated_fat_g": 7,
+    "sodium_mg": 10,
+    "fiber_g": 0,
+    "risk": "high saturated fat dairy",
+    "recommendation": "Use heavy cream sparingly or choose lighter dairy when possible.",
+    "aliases": [
+      "heavy cream",
+      "organic heavy cream"
+    ]
+  },
+  {
+    "name": "juice",
+    "category": "sugary drink",
+    "sugar_g": 24,
+    "saturated_fat_g": 0,
+    "sodium_mg": 10,
+    "fiber_g": 0,
+    "risk": "liquid sugar",
+    "recommendation": "Prefer whole fruit over juice."
+  },
+  {
+    "name": "macaroni",
+    "category": "grain",
+    "sugar_g": 1,
+    "saturated_fat_g": 0,
+    "sodium_mg": 5,
+    "fiber_g": 2,
+    "risk": "refined grain",
+    "recommendation": "Balance macaroni with vegetables and protein.",
+    "aliases": [
+      "macaroni",
+      "macaroni pasta"
+    ]
+  },
+  {
+    "name": "margarine",
+    "category": "fat",
+    "sugar_g": 0,
+    "saturated_fat_g": 2.5,
+    "sodium_mg": 90,
+    "fiber_g": 0,
+    "risk": "spread fat",
+    "recommendation": "Use margarine in small portions and compare labels for saturated fat.",
+    "aliases": [
+      "margarine",
+      "plain margarine"
+    ]
+  },
+  {
+    "name": "milk",
+    "category": "dairy",
+    "sugar_g": 12,
+    "saturated_fat_g": 3,
+    "sodium_mg": 100,
+    "fiber_g": 0,
+    "risk": "moderate dairy sugar",
+    "recommendation": "Choose low-fat unsweetened milk.",
+    "aliases": [
+      "milk"
+    ]
+  },
+  {
+    "name": "muesli",
+    "category": "whole grain",
+    "sugar_g": 8,
+    "saturated_fat_g": 1,
+    "sodium_mg": 30,
+    "fiber_g": 4,
+    "risk": "moderate sugar breakfast",
+    "recommendation": "Choose low-sugar muesli with higher fiber.",
+    "aliases": [
+      "muesli",
+      "assorted muesli"
+    ]
+  },
+  {
+    "name": "mushrooms",
+    "category": "vegetable",
+    "sugar_g": 1,
+    "saturated_fat_g": 0,
+    "sodium_mg": 5,
+    "fiber_g": 1,
+    "risk": "low risk",
+    "recommendation": "Mushrooms add vegetable variety with low sodium.",
+    "aliases": [
+      "mushrooms",
+      "mushroom",
+      "white sliced mushroom",
+      "white sliced mushrooms"
+    ]
+  },
+  {
+    "name": "noodles",
+    "category": "processed grain",
+    "sugar_g": 2,
+    "saturated_fat_g": 7,
+    "sodium_mg": 850,
+    "fiber_g": 2,
+    "risk": "high sodium instant food",
+    "recommendation": "Reduce instant noodles and add vegetables if used."
+  },
+  {
+    "name": "nuts",
+    "category": "healthy fat",
+    "sugar_g": 2,
+    "saturated_fat_g": 2,
+    "sodium_mg": 5,
+    "fiber_g": 3,
+    "risk": "low risk",
+    "recommendation": "Choose unsalted nuts for healthy fats."
+  },
+  {
+    "name": "oats",
+    "category": "whole grain",
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 2,
+    "fiber_g": 4,
+    "risk": "low risk",
+    "recommendation": "Keep oats as a high-fiber breakfast option."
+  },
+  {
+    "name": "oil",
+    "category": "fat",
+    "sugar_g": 0,
+    "saturated_fat_g": 2,
+    "sodium_mg": 0,
+    "fiber_g": 0,
+    "risk": "high energy density",
+    "recommendation": "Measure oil portions while cooking."
+  },
+  {
+    "name": "orange",
+    "category": "fruit",
+    "sugar_g": 12,
+    "saturated_fat_g": 0,
+    "sodium_mg": 0,
+    "fiber_g": 3,
+    "risk": "low risk",
+    "recommendation": "Add citrus fruit for micronutrient diversity."
+  },
+  {
+    "name": "pasta",
+    "category": "grain",
+    "sugar_g": 1,
+    "saturated_fat_g": 0,
+    "sodium_mg": 5,
+    "fiber_g": 2,
+    "risk": "refined grain",
+    "recommendation": "Balance pasta with vegetables and protein.",
+    "aliases": [
+      "pasta",
+      "dry pasta",
+      "organic pasta",
+      "vodka pasta"
+    ]
+  },
+  {
+    "name": "rice",
+    "category": "grain",
+    "sugar_g": 0,
+    "saturated_fat_g": 0,
+    "sodium_mg": 2,
+    "fiber_g": 1,
+    "risk": "low fiber grain",
+    "recommendation": "Balance rice with vegetables and protein."
+  },
+  {
+    "name": "salmon fillet",
+    "category": "protein",
+    "sugar_g": 0,
+    "saturated_fat_g": 1,
+    "sodium_mg": 80,
+    "fiber_g": 0,
+    "risk": "low risk",
+    "recommendation": "Salmon is a strong protein choice with healthy fats.",
+    "aliases": [
+      "salmon fillet",
+      "salmon filet"
+    ]
+  },
+  {
+    "name": "sauce",
+    "category": "condiment",
+    "sugar_g": 8,
+    "saturated_fat_g": 0,
+    "sodium_mg": 500,
+    "fiber_g": 0,
+    "risk": "hidden sugar and sodium",
+    "recommendation": "Use sauces sparingly."
+  },
+  {
+    "name": "sausages",
+    "category": "processed meat",
+    "sugar_g": 2,
+    "saturated_fat_g": 7,
+    "sodium_mg": 650,
+    "fiber_g": 0,
+    "risk": "processed meat sodium",
+    "recommendation": "Limit processed meats and choose fresh protein."
+  },
+  {
+    "name": "shredded jack cheese",
+    "category": "dairy",
+    "sugar_g": 1,
+    "saturated_fat_g": 6,
+    "sodium_mg": 360,
+    "fiber_g": 0,
+    "risk": "high sodium dairy",
+    "recommendation": "Use shredded cheese in smaller portions or compare lower-sodium options.",
+    "aliases": [
+      "shredded jack cheese",
+      "cheddar jack shredded",
+      "cheddar jack shred",
+      "ched jack shred",
+      "ched jack shredded"
+    ]
+  },
+  {
+    "name": "soda",
+    "category": "sugary drink",
+    "sugar_g": 39,
+    "saturated_fat_g": 0,
+    "sodium_mg": 45,
+    "fiber_g": 0,
+    "risk": "high sugar",
+    "recommendation": "Replace soda with water or unsweetened tea.",
+    "aliases": [
+      "soda"
+    ]
+  },
+  {
+    "name": "vegetables",
+    "category": "vegetable",
+    "sugar_g": 4,
+    "saturated_fat_g": 0,
+    "sodium_mg": 35,
+    "fiber_g": 5,
+    "risk": "low risk",
+    "recommendation": "Increase vegetable variety and frequency."
+  },
+  {
+    "name": "yogurt",
+    "category": "dairy",
+    "sugar_g": 17,
+    "saturated_fat_g": 2,
+    "sodium_mg": 85,
+    "fiber_g": 0,
+    "risk": "sweetened dairy risk",
+    "recommendation": "Choose plain yogurt and add fresh fruit."
+  }
 ]
-

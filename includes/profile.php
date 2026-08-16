@@ -35,7 +35,7 @@ function default_health_profile(?array $user = null): array
     return [
         'display_name' => $user['name'] ?? 'Guest Visitor',
         'household_name' => 'My Household',
-        'family_size' => 4,
+        'family_size' => 1,
         'age_group' => 'mixed',
         'activity_level' => 'moderate',
         'diet_goal' => 'balanced',
@@ -45,10 +45,7 @@ function default_health_profile(?array $user = null): array
         'preferred_foods' => '',
         'avoid_foods' => '',
         'health_notes' => '',
-        'family_members' => [
-            ['name' => 'Mother', 'age_group' => 'adult', 'conditions' => [], 'notes' => ''],
-            ['name' => 'Child', 'age_group' => 'children', 'conditions' => [], 'notes' => ''],
-        ],
+        'family_members' => [],
         'analysis' => [],
         'updated_at' => null,
     ];
@@ -64,7 +61,14 @@ function load_user_health_profile(?array $user = null): array
     }
 
     $stored = json_decode((string)file_get_contents($path), true);
-    return is_array($stored) ? array_replace($profile, $stored) : $profile;
+
+    if (!is_array($stored)) {
+        return $profile;
+    }
+
+    $profile = array_replace($profile, $stored);
+    $profile['family_members'] = normalize_family_members($profile['family_members'] ?? []);
+    return $profile;
 }
 
 function save_user_health_profile(array $profile, ?array $user = null): void
@@ -83,10 +87,12 @@ function sanitize_profile_payload(array $payload): array
         $conditions = [];
     }
 
+    $familySize = max(1, min(20, (int)($payload['family_size'] ?? 1)));
+
     return [
         'display_name' => trim((string)($payload['display_name'] ?? '')),
         'household_name' => trim((string)($payload['household_name'] ?? 'My Household')),
-        'family_size' => max(1, min(20, (int)($payload['family_size'] ?? 1))),
+        'family_size' => $familySize,
         'age_group' => preg_replace('/[^a-zA-Z_-]/', '', (string)($payload['age_group'] ?? 'mixed')) ?: 'mixed',
         'activity_level' => preg_replace('/[^a-zA-Z_-]/', '', (string)($payload['activity_level'] ?? 'moderate')) ?: 'moderate',
         'diet_goal' => preg_replace('/[^a-zA-Z_-]/', '', (string)($payload['diet_goal'] ?? 'balanced')) ?: 'balanced',
@@ -96,7 +102,7 @@ function sanitize_profile_payload(array $payload): array
         'preferred_foods' => trim((string)($payload['preferred_foods'] ?? '')),
         'avoid_foods' => trim((string)($payload['avoid_foods'] ?? '')),
         'health_notes' => trim((string)($payload['health_notes'] ?? '')),
-        'family_members' => sanitize_family_members($payload),
+        'family_members' => sanitize_family_members($payload, $familySize),
     ];
 }
 
@@ -108,9 +114,56 @@ function sanitize_profile_conditions(array $conditions): array
     )));
 }
 
-function sanitize_family_members(array $payload): array
+function family_relationship_options(): array
+{
+    return [
+        '' => 'Select relationship',
+        'self' => 'Self',
+        'spouse' => 'Spouse',
+        'child' => 'Child',
+        'parent' => 'Parent',
+        'sibling' => 'Sibling',
+        'relative' => 'Relative',
+        'other_household_member' => 'Other household member',
+    ];
+}
+
+function sanitize_family_relationship($relationship): string
+{
+    $value = preg_replace('/[^a-zA-Z_]/', '', (string)$relationship) ?: '';
+    return array_key_exists($value, family_relationship_options()) ? $value : '';
+}
+
+function normalize_family_members($members): array
+{
+    if (!is_array($members)) {
+        return [];
+    }
+
+    $normalized = [];
+
+    foreach ($members as $member) {
+        if (!is_array($member)) {
+            continue;
+        }
+
+        $conditions = is_array($member['conditions'] ?? null) ? $member['conditions'] : [];
+        $normalized[] = [
+            'name' => trim((string)($member['name'] ?? '')),
+            'relationship' => sanitize_family_relationship($member['relationship'] ?? ''),
+            'age_group' => preg_replace('/[^a-zA-Z_-]/', '', (string)($member['age_group'] ?? 'adult')) ?: 'adult',
+            'conditions' => sanitize_profile_conditions($conditions),
+            'notes' => trim((string)($member['notes'] ?? '')),
+        ];
+    }
+
+    return array_slice($normalized, 0, 20);
+}
+
+function sanitize_family_members(array $payload, ?int $familySize = null): array
 {
     $names = $payload['member_name'] ?? [];
+    $relationships = $payload['member_relationship'] ?? [];
     $ages = $payload['member_age_group'] ?? [];
     $conditionGroups = $payload['member_conditions'] ?? [];
     $notes = $payload['member_notes'] ?? [];
@@ -120,7 +173,17 @@ function sanitize_family_members(array $payload): array
         return [];
     }
 
+    if (!is_array($relationships)) {
+        $relationships = [];
+    }
+
+    $memberLimit = $familySize === null ? 12 : max(1, min(20, $familySize));
+
     foreach ($names as $index => $name) {
+        if (count($members) >= $memberLimit) {
+            break;
+        }
+
         $cleanName = trim((string)$name);
 
         if ($cleanName === '') {
@@ -134,13 +197,27 @@ function sanitize_family_members(array $payload): array
 
         $members[] = [
             'name' => $cleanName,
+            'relationship' => sanitize_family_relationship($relationships[$index] ?? ''),
             'age_group' => preg_replace('/[^a-zA-Z_-]/', '', (string)($ages[$index] ?? 'adult')) ?: 'adult',
             'conditions' => sanitize_profile_conditions($rawConditions),
             'notes' => trim((string)($notes[$index] ?? '')),
         ];
     }
 
-    return array_slice($members, 0, 12);
+    return array_slice($members, 0, $memberLimit);
+}
+
+function has_multiple_self_relationships(array $members): bool
+{
+    $selfCount = 0;
+
+    foreach ($members as $member) {
+        if (is_array($member) && ($member['relationship'] ?? '') === 'self') {
+            $selfCount++;
+        }
+    }
+
+    return $selfCount > 1;
 }
 
 function family_member_context_text(array $profile): string
@@ -155,9 +232,12 @@ function family_member_context_text(array $profile): string
         $conditions = $member['conditions'] ?? [];
         $conditionText = is_array($conditions) && $conditions ? implode(', ', $conditions) : 'no conditions';
         $note = trim((string)($member['notes'] ?? ''));
+        $relationship = sanitize_family_relationship($member['relationship'] ?? '');
+        $relationshipText = $relationship !== '' ? str_replace('_', ' ', $relationship) . ', ' : '';
         $parts[] = trim(sprintf(
-            '%s is %s with %s%s',
+            '%s is %s%s with %s%s',
             (string)($member['name'] ?? 'Family member'),
+            $relationshipText,
             str_replace('_', ' ', (string)($member['age_group'] ?? 'adult')),
             $conditionText,
             $note !== '' ? '; note: ' . $note : ''

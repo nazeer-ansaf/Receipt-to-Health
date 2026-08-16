@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1650" height="1000" viewBox="0 0 1650 1000">
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#526b73"/>
+  </marker>
+  <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+    <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#18323a" flood-opacity="0.12"/>
+  </filter>
+</defs>
+<rect width="100%" height="100%" fill="#f6faf9"/>
+<text x="825" y="48" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-weight="800" fill="#172b3a">
+<tspan x="825" dy="0">Sequence Diagram - Receipt Processing</tspan>
+</text>
+<rect x="30" y="95" width="140" height="55" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="100" y="128.4" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#172b3a">
+<tspan x="100" dy="0">User</tspan>
+</text>
+<line x1="100" y1="150" x2="100" y2="900" stroke="#9ab2b8" stroke-width="2" stroke-dasharray="8 8"/>
+<rect x="230" y="95" width="140" height="55" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="300" y="128.4" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#172b3a">
+<tspan x="300" dy="0">Browser</tspan>
+</text>
+<line x1="300" y1="150" x2="300" y2="900" stroke="#9ab2b8" stroke-width="2" stroke-dasharray="8 8"/>
+<rect x="450" y="95" width="140" height="55" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="520" y="128.4" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#172b3a">
+<tspan x="520" dy="0">PHP API</tspan>
+</text>
+<line x1="520" y1="150" x2="520" y2="900" stroke="#9ab2b8" stroke-width="2" stroke-dasharray="8 8"/>
+<rect x="665" y="95" width="140" height="55" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="735" y="128.4" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#172b3a">
+<tspan x="735" dy="0">Profile</tspan>
+</text>
+<line x1="735" y1="150" x2="735" y2="900" stroke="#9ab2b8" stroke-width="2" stroke-dasharray="8 8"/>
+<rect x="885" y="95" width="140" height="55" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="955" y="128.4" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#172b3a">
+<tspan x="955" dy="0">Python</tspan>
+</text>
+<line x1="955" y1="150" x2="955" y2="900" stroke="#9ab2b8" stroke-width="2" stroke-dasharray="8 8"/>
+<rect x="1100" y="95" width="140" height="55" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="1170" y="128.4" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#172b3a">
+<tspan x="1170" dy="0">Catalog</tspan>
+</text>
+<line x1="1170" y1="150" x2="1170" y2="900" stroke="#9ab2b8" stroke-width="2" stroke-dasharray="8 8"/>
+<rect x="1305" y="95" width="140" height="55" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="1375" y="128.4" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#172b3a">
+<tspan x="1375" dy="0">Database</tspan>
+</text>
+<line x1="1375" y1="150" x2="1375" y2="900" stroke="#9ab2b8" stroke-width="2" stroke-dasharray="8 8"/>
+<rect x="1470" y="95" width="140" height="55" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="1540" y="128.4" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#172b3a">
+<tspan x="1540" dy="0">Dashboard</tspan>
+</text>
+<line x1="1540" y1="150" x2="1540" y2="900" stroke="#9ab2b8" stroke-width="2" stroke-dasharray="8 8"/>
+<line x1="100" y1="210" x2="300" y2="210" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="200" y="202" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="200" dy="0">Choose receipt and</tspan>
+<tspan x="200" dy="28">notes</tspan>
+</text>
+<line x1="300" y1="285" x2="520" y2="285" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="410" y="277" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="410" dy="0">POST</tspan>
+<tspan x="410" dy="28">process_receipt</tspan>
+</text>
+<line x1="520" y1="360" x2="735" y2="360" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="627" y="352" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="627" dy="0">Load/update</tspan>
+<tspan x="627" dy="28">profile</tspan>
+</text>
+<line x1="520" y1="435" x2="955" y2="435" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="737" y="427" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="737" dy="0">Run analysis</tspan>
+<tspan x="737" dy="28">command</tspan>
+</text>
+<line x1="955" y1="510" x2="1170" y2="510" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="1062" y="502" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="1062" dy="0">Match food rules</tspan>
+</text>
+<line x1="1170" y1="585" x2="955" y2="585" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)" stroke-dasharray="8 7"/>
+<text x="1062" y="577" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="1062" dy="0">Nutrients and</tspan>
+<tspan x="1062" dy="28">risks</tspan>
+</text>
+<line x1="955" y1="660" x2="520" y2="660" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)" stroke-dasharray="8 7"/>
+<text x="737" y="652" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="737" dy="0">Analysis JSON</tspan>
+</text>
+<line x1="520" y1="735" x2="1375" y2="735" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="947" y="727" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="947" dy="0">Persist result</tspan>
+</text>
+<line x1="520" y1="810" x2="1540" y2="810" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="1030" y="802" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="1030" dy="0">Redirect to</tspan>
+<tspan x="1030" dy="28">dashboard</tspan>
+</text>
+<line x1="1540" y1="885" x2="100" y2="885" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)" stroke-dasharray="8 7"/>
+<text x="820" y="877" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#526b73">
+<tspan x="820" dy="0">Show score and</tspan>
+<tspan x="820" dy="28">recommendations</tspan>
+</text>
+</svg>

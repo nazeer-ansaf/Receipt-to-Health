@@ -13,6 +13,8 @@ if (!has_app_access()) {
     json_response(['error' => 'Login or guest mode is required before analysis.'], 403);
 }
 
+require_valid_csrf_token();
+
 if (!isset($_FILES['receipt']) || $_FILES['receipt']['error'] !== UPLOAD_ERR_OK) {
     json_response(['error' => 'Receipt upload failed.'], 422);
 }
@@ -43,11 +45,53 @@ $profileAnalysis = generate_health_profile_analysis($profile);
 $medicalRecords = load_medical_records();
 
 $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'txt'];
+$allowedMimeTypes = [
+    'jpg' => ['image/jpeg'],
+    'jpeg' => ['image/jpeg'],
+    'png' => ['image/png'],
+    'webp' => ['image/webp'],
+    'txt' => ['text/plain', 'text/csv', 'text/tab-separated-values'],
+];
+$maxReceiptBytes = 10 * 1024 * 1024;
 $originalName = $_FILES['receipt']['name'];
 $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+$sizeBytes = (int)($_FILES['receipt']['size'] ?? 0);
+$temporaryPath = (string)($_FILES['receipt']['tmp_name'] ?? '');
 
 if (!in_array($extension, $allowedExtensions, true)) {
     json_response(['error' => 'Only JPG, PNG, WEBP, and TXT receipts are allowed.'], 422);
+}
+
+if ($sizeBytes <= 0) {
+    json_response(['error' => 'The selected receipt is empty.'], 422);
+}
+
+if ($sizeBytes > $maxReceiptBytes) {
+    json_response(['error' => 'Receipt uploads must be 10 MB or smaller.'], 422);
+}
+
+$mimeType = 'application/octet-stream';
+
+if ($temporaryPath !== '' && function_exists('finfo_open')) {
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+
+    if ($finfo !== false) {
+        $detectedMime = finfo_file($finfo, $temporaryPath);
+        finfo_close($finfo);
+
+        if (is_string($detectedMime) && $detectedMime !== '') {
+            $mimeType = $detectedMime;
+        }
+    }
+}
+
+if ($mimeType !== 'application/octet-stream') {
+    $mimeMatches = in_array($mimeType, $allowedMimeTypes[$extension] ?? [], true)
+        || ($extension === 'txt' && str_starts_with($mimeType, 'text/'));
+
+    if (!$mimeMatches) {
+        json_response(['error' => 'The selected file type does not match the allowed receipt formats.'], 422);
+    }
 }
 
 ensure_directory(UPLOAD_DIR);
@@ -75,7 +119,10 @@ $result['receipt_asset'] = [
     'web_path' => 'uploads/' . basename($uploadedPath),
     'original_name' => $originalName,
     'extension' => $extension,
+    'mime_type' => $mimeType,
+    'size_bytes' => $sizeBytes,
     'is_image' => in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true),
+    'sha256' => hash_file('sha256', $uploadedPath) ?: '',
 ];
 $result['profile_context'] = [
     'role' => current_user_role(),

@@ -42,7 +42,7 @@ function refresh_session_user(array $sessionUser): array
     try {
         ensure_user_auth_columns();
 
-        $statement = db()->prepare('SELECT id, name, email, role, auth_provider FROM users WHERE id = :id LIMIT 1');
+        $statement = db()->prepare('SELECT id, name, email, role, auth_provider, profile_picture FROM users WHERE id = :id LIMIT 1');
         $statement->execute([':id' => $userId]);
         $user = $statement->fetch();
 
@@ -53,6 +53,7 @@ function refresh_session_user(array $sessionUser): array
                 'email' => (string)$user['email'],
                 'role' => normalize_user_role((string)($user['role'] ?? 'user')),
                 'auth_provider' => (string)($user['auth_provider'] ?? 'local'),
+                'profile_picture' => (string)($user['profile_picture'] ?? ''),
                 'is_guest' => false,
             ];
 
@@ -78,12 +79,14 @@ function current_user_id(): ?int
 function login_user(array $user): void
 {
     start_app_session();
+    session_regenerate_id(true);
     $_SESSION['user'] = [
         'id' => (int)$user['id'],
         'name' => (string)$user['name'],
         'email' => (string)$user['email'],
         'role' => normalize_user_role((string)($user['role'] ?? 'user')),
         'auth_provider' => (string)($user['auth_provider'] ?? 'local'),
+        'profile_picture' => (string)($user['profile_picture'] ?? ''),
         'is_guest' => false,
     ];
 }
@@ -285,5 +288,99 @@ function ensure_user_auth_columns(): void
         db()->exec("ALTER TABLE users ADD COLUMN auth_provider VARCHAR(40) NOT NULL DEFAULT 'local' AFTER role");
     } catch (Throwable $exception) {
         // Column already exists or database privileges are limited.
+    }
+
+    try {
+        db()->exec("ALTER TABLE users MODIFY COLUMN password_hash VARCHAR(255) NULL");
+    } catch (Throwable $exception) {
+        // Existing installations may already allow passwordless OAuth users.
+    }
+
+    try {
+        db()->exec("ALTER TABLE users ADD COLUMN google_id VARCHAR(255) NULL UNIQUE AFTER email");
+    } catch (Throwable $exception) {
+        // Column already exists or database privileges are limited.
+    }
+
+    try {
+        db()->exec("ALTER TABLE users ADD COLUMN profile_picture VARCHAR(500) NULL AFTER auth_provider");
+    } catch (Throwable $exception) {
+        // Column already exists or database privileges are limited.
+    }
+}
+
+function ensure_password_reset_tokens_table(): void
+{
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+
+    db()->exec(
+        'CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            token_hash CHAR(64) NOT NULL UNIQUE,
+            expires_at DATETIME NOT NULL,
+            used_at DATETIME NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX password_reset_user_index (user_id),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+    );
+    $checked = true;
+}
+
+function create_password_reset_token(int $userId): string
+{
+    ensure_password_reset_tokens_table();
+    db()->prepare('UPDATE password_reset_tokens SET used_at = NOW() WHERE user_id = :user_id AND used_at IS NULL')
+        ->execute([':user_id' => $userId]);
+
+    $token = bin2hex(random_bytes(32));
+    db()->prepare(
+        'INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+         VALUES (:user_id, :token_hash, DATE_ADD(NOW(), INTERVAL 1 HOUR))'
+    )->execute([
+        ':user_id' => $userId,
+        ':token_hash' => hash('sha256', $token),
+    ]);
+
+    return $token;
+}
+
+function find_password_reset_token(string $token): ?array
+{
+    if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
+        return null;
+    }
+
+    ensure_password_reset_tokens_table();
+    $statement = db()->prepare(
+        'SELECT prt.id AS token_id, prt.user_id, u.email
+         FROM password_reset_tokens prt
+         INNER JOIN users u ON u.id = prt.user_id
+         WHERE prt.token_hash = :token_hash AND prt.used_at IS NULL AND prt.expires_at > NOW()
+         LIMIT 1'
+    );
+    $statement->execute([':token_hash' => hash('sha256', $token)]);
+    $result = $statement->fetch();
+    return is_array($result) ? $result : null;
+}
+
+function reset_user_password(int $userId, int $tokenId, string $password): void
+{
+    ensure_password_reset_tokens_table();
+    $pdo = db();
+    $pdo->beginTransaction();
+    try {
+        $pdo->prepare('UPDATE users SET password_hash = :password_hash, auth_provider = \'local\' WHERE id = :id')
+            ->execute([':password_hash' => password_hash($password, PASSWORD_DEFAULT), ':id' => $userId]);
+        $pdo->prepare('UPDATE password_reset_tokens SET used_at = NOW() WHERE id = :id AND used_at IS NULL')
+            ->execute([':id' => $tokenId]);
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        $pdo->rollBack();
+        throw $exception;
     }
 }

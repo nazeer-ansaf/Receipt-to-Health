@@ -39,6 +39,8 @@ page_hero(
         $weeklyTrend = weekly_score_trend($allResults);
         $scoreExplanation = score_explanation($result);
         $priorityAlerts = is_array($result['priority_alerts'] ?? null) ? $result['priority_alerts'] : [];
+        $mlClassification = is_array($result['ml_classification'] ?? null) ? $result['ml_classification'] : [];
+        $unmatchedPredictions = is_array($result['unmatched_line_predictions'] ?? null) ? $result['unmatched_line_predictions'] : [];
         $receiptAsset = $result['receipt_asset'] ?? ($result['correction_context']['original_asset'] ?? []);
         $correctionContext = $result['correction_context'] ?? [];
         $familyMembers = is_array($profileContext['family_members'] ?? null) ? $profileContext['family_members'] : [];
@@ -79,6 +81,11 @@ page_hero(
             <span>Risk alerts</span>
             <strong><?= count($anomalies) + count($recommendationCards) ?></strong>
             <small>signals found</small>
+        </article>
+        <article class="metric">
+            <span>ML model</span>
+            <strong><?= !empty($mlClassification['enabled']) ? 'On' : 'Off' ?></strong>
+            <small><?= e($mlClassification['version'] ?? $mlClassification['status'] ?? 'not loaded') ?></small>
         </article>
     </section>
 
@@ -159,6 +166,7 @@ page_hero(
             <dl class="facts compact">
                 <div><dt>OCR engine</dt><dd><?= e($result['ocr_status']['engine'] ?? 'not stored') ?></dd></div>
                 <div><dt>OCR confidence</dt><dd><?= e($result['ocr_status']['confidence_label'] ?? 'n/a') ?> <?= isset($result['ocr_status']['confidence']) ? '(' . e(round((float)$result['ocr_status']['confidence'] * 100)) . '%)' : '' ?></dd></div>
+                <div><dt>ML classifier</dt><dd><?= e(!empty($mlClassification['enabled']) ? 'Enabled' : 'Disabled') ?> <?= !empty($mlClassification['trained_at']) ? '(' . e($mlClassification['trained_at']) . ')' : '' ?></dd></div>
                 <div><dt>Original file</dt><dd><?= e($receiptAsset['original_name'] ?? 'not stored') ?></dd></div>
             </dl>
         </article>
@@ -201,6 +209,7 @@ page_hero(
         <div class="pipeline">
             <div><strong>OCR</strong><span><?= trim((string)($result['extracted_text'] ?? '')) !== '' ? 'Text extracted' : 'Waiting for OCR text' ?></span></div>
             <div><strong>NLP</strong><span><?= count($items) ?> items normalized</span></div>
+            <div><strong>ML</strong><span><?= e(!empty($mlClassification['enabled']) ? 'Classifier loaded' : 'Model unavailable') ?></span></div>
             <div><strong>Knowledge Graph</strong><span><?= count($categories) ?> food categories mapped</span></div>
             <div><strong>Scoring</strong><span><?= e($score) ?> weighted score</span></div>
             <div><strong>Trend</strong><span><?= count($allResults) >= 3 ? 'History available' : 'Needs more receipts' ?></span></div>
@@ -343,6 +352,7 @@ page_hero(
                             <th>Category</th>
                             <th>Risk</th>
                             <th>Confidence</th>
+                            <th>Method</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -352,7 +362,11 @@ page_hero(
                                 <td><?= e($item['quantity'] ?? '') ?></td>
                                 <td><?= e($item['category'] ?? '') ?></td>
                                 <td><span class="risk-badge <?= e(risk_text_class((string)($item['risk'] ?? ''))) ?>"><?= e($item['risk'] ?? '') ?></span></td>
-                                <td><?= e($item['confidence'] ?? 'n/a') ?></td>
+                                <td>
+                                    <?= isset($item['confidence']) ? e(round((float)$item['confidence'] * 100)) . '%' : 'n/a' ?>
+                                    <small><?= e($item['confidence_label'] ?? '') ?></small>
+                                </td>
+                                <td><span class="risk-badge <?= ($item['detection_method'] ?? '') === 'ml_classifier' ? 'risk-moderate' : 'risk-low' ?>"><?= e(str_replace('_', ' ', (string)($item['detection_method'] ?? 'rule_alias'))) ?></span></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -387,6 +401,17 @@ page_hero(
                 <ul class="insight-list">
                     <?php foreach ($result['unmatched_lines'] as $line): ?>
                         <li><?= e($line) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+            <?php if ($unmatchedPredictions): ?>
+                <h3>ML Category Fallback</h3>
+                <ul class="insight-list">
+                    <?php foreach ($unmatchedPredictions as $prediction): ?>
+                        <li>
+                            <strong><?= e($prediction['line'] ?? '') ?></strong>
+                            <span><?= e($prediction['predicted_category'] ?? 'unknown') ?>, <?= e(round((float)($prediction['confidence'] ?? 0) * 100)) ?>% confidence</span>
+                        </li>
                     <?php endforeach; ?>
                 </ul>
             <?php endif; ?>

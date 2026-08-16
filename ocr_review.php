@@ -10,7 +10,7 @@ $draftId = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_GET['draft'] ?? ''));
 $draft = $draftId !== '' ? load_ocr_draft($draftId) : null;
 $draftResult = is_array($draft['analysis_result'] ?? null) ? $draft['analysis_result'] : null;
 $draftItems = $draftResult['items'] ?? [];
-$draftFamilySize = (int)($draft['family_size'] ?? $healthProfile['family_size'] ?? 4);
+$draftFamilySize = (int)($draft['family_size'] ?? $healthProfile['family_size'] ?? 1);
 $draftAgeGroup = (string)($draft['age_group'] ?? $healthProfile['age_group'] ?? 'mixed');
 $draftConditions = is_array($draft['conditions'] ?? null) ? $draft['conditions'] : $profileConditions;
 $draftHealthNotes = (string)($draft['health_notes'] ?? $healthProfile['health_notes'] ?? '');
@@ -34,12 +34,16 @@ page_hero(
     <article class="panel span-8">
         <h2>Fix Detected Items</h2>
         <form action="api/analyze_items.php" method="post" data-item-correction-form>
+            <?= csrf_field() ?>
             <input type="hidden" name="draft_id" value="<?= e($draftId) ?>">
 
             <div class="ocr-status-card">
                 <strong><?= e(ucfirst((string)($draftResult['ocr_status']['engine'] ?? 'OCR'))) ?></strong>
                 <span><?= e($draftResult['ocr_status']['message'] ?? 'OCR output is ready for review.') ?></span>
             </div>
+            <?php if ((float)($draftResult['ocr_status']['confidence'] ?? 1) < 0.6): ?>
+                <div class="review-warning" role="alert"><strong>Low OCR confidence</strong><span>Please review detected items carefully before relying on the health score.</span></div>
+            <?php endif; ?>
 
             <div class="table-wrap">
                 <table class="item-editor-table">
@@ -49,6 +53,7 @@ page_hero(
                             <th>Qty</th>
                             <th>Detected category</th>
                             <th>Risk</th>
+                            <th>ML evidence</th>
                             <th>Raw proof</th>
                             <th></th>
                         </tr>
@@ -56,18 +61,28 @@ page_hero(
                     <tbody data-item-editor-body>
                         <?php if (!$draftItems): ?>
                             <tr>
-                                <td><input type="text" name="item_name[]" placeholder="food item"></td>
+                                <td>
+                                    <input type="text" name="item_name[]" placeholder="food item">
+                                    <input type="hidden" name="raw_line[]" value="">
+                                </td>
                                 <td><input type="number" name="quantity[]" min="0" step="0.1" value="1"></td>
-                                <td colspan="3" class="muted">No items were confidently detected. Add rows manually.</td>
+                                <td colspan="4" class="muted">No items were confidently detected. Add rows manually.</td>
                                 <td><button class="mini-icon-button" type="button" data-remove-item-row title="Remove row">x</button></td>
                             </tr>
                         <?php endif; ?>
                         <?php foreach ($draftItems as $item): ?>
                             <tr>
-                                <td><input type="text" name="item_name[]" value="<?= e($item['name'] ?? '') ?>" required></td>
+                                <td>
+                                    <input type="text" name="item_name[]" value="<?= e($item['name'] ?? '') ?>" required>
+                                    <input type="hidden" name="raw_line[]" value="<?= e($item['raw_line'] ?? '') ?>">
+                                </td>
                                 <td><input type="number" name="quantity[]" min="0" step="0.1" value="<?= e($item['quantity'] ?? 1) ?>" required></td>
                                 <td><?= e($item['category'] ?? '') ?></td>
                                 <td><span class="risk-badge <?= e(risk_text_class((string)($item['risk'] ?? ''))) ?>"><?= e($item['risk'] ?? 'not rated') ?></span></td>
+                                <td>
+                                    <span class="risk-badge <?= ($item['detection_method'] ?? '') === 'ml_classifier' ? 'risk-moderate' : 'risk-low' ?>"><?= e(str_replace('_', ' ', (string)($item['detection_method'] ?? 'rule_alias'))) ?></span>
+                                    <small><?= isset($item['confidence']) ? e(round((float)$item['confidence'] * 100)) . '%' : 'n/a' ?></small>
+                                </td>
                                 <td class="proof-cell"><?= e($item['raw_line'] ?? '') ?></td>
                                 <td><button class="mini-icon-button" type="button" data-remove-item-row title="Remove row">x</button></td>
                             </tr>
@@ -126,6 +141,12 @@ page_hero(
         <?php else: ?>
             <div class="receipt-preview-placeholder">Text receipt draft</div>
         <?php endif; ?>
+        <?php if (!empty($draftResult['receipt_metadata']['store_name']) || !empty($draftResult['receipt_metadata']['receipt_date'])): ?>
+            <dl class="facts compact">
+                <?php if (!empty($draftResult['receipt_metadata']['store_name'])): ?><div><dt>Store</dt><dd><?= e($draftResult['receipt_metadata']['store_name']) ?></dd></div><?php endif; ?>
+                <?php if (!empty($draftResult['receipt_metadata']['receipt_date'])): ?><div><dt>Receipt date</dt><dd><?= e($draftResult['receipt_metadata']['receipt_date']) ?></dd></div><?php endif; ?>
+            </dl>
+        <?php endif; ?>
 
         <h2>OCR Evidence Before Correction</h2>
         <dl class="facts compact">
@@ -155,6 +176,7 @@ page_hero(
     <article class="panel span-8">
         <h2>Corrected Receipt Text</h2>
         <form action="api/analyze_text.php" method="post">
+            <?= csrf_field() ?>
             <label>
                 <span>Paste or correct OCR text</span>
                 <textarea name="receipt_text" rows="14" required>milk 2
@@ -168,7 +190,7 @@ vegetables 3</textarea>
             <div class="grid two">
                 <label>
                     <span>Family members</span>
-                    <input type="number" name="family_size" min="1" max="20" value="<?= e($healthProfile['family_size'] ?? 4) ?>" required>
+                    <input type="number" name="family_size" min="1" max="20" value="<?= e($healthProfile['family_size'] ?? 1) ?>" required>
                 </label>
                 <label>
                     <span>Age group</span>

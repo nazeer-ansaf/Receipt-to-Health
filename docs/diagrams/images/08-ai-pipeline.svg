@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="560" viewBox="0 0 1900 560">
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#526b73"/>
+  </marker>
+  <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+    <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#18323a" flood-opacity="0.12"/>
+  </filter>
+</defs>
+<rect width="100%" height="100%" fill="#f6faf9"/>
+<text x="950" y="48" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-weight="800" fill="#172b3a">
+<tspan x="950" dy="0">AI / Processing Pipeline Diagram</tspan>
+</text>
+<rect x="55" y="205" width="160" height="115" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="135" y="255.62" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#172b3a">
+<tspan x="135" dy="0">Receipt Input</tspan>
+<tspan x="135" dy="23">Image or Text</tspan>
+</text>
+<line x1="215" y1="263" x2="250" y2="263" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<rect x="240" y="205" width="160" height="115" rx="16" fill="#eef8f5" stroke="#2f6f73" stroke-width="2"/>
+<text x="320" y="244.12" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#172b3a">
+<tspan x="320" dy="0">OCR Extraction</tspan>
+<tspan x="320" dy="23">Text from</tspan>
+<tspan x="320" dy="23">image</tspan>
+</text>
+<line x1="400" y1="263" x2="435" y2="263" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<rect x="425" y="205" width="160" height="115" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="505" y="244.12" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#172b3a">
+<tspan x="505" dy="0">NLP Parsing</tspan>
+<tspan x="505" dy="23">Detect food</tspan>
+<tspan x="505" dy="23">lines</tspan>
+</text>
+<line x1="585" y1="263" x2="620" y2="263" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<rect x="610" y="205" width="160" height="115" rx="16" fill="#eef8f5" stroke="#2f6f73" stroke-width="2"/>
+<text x="690" y="244.12" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#172b3a">
+<tspan x="690" dy="0">Normalization</tspan>
+<tspan x="690" dy="23">Names and</tspan>
+<tspan x="690" dy="23">quantities</tspan>
+</text>
+<line x1="770" y1="263" x2="805" y2="263" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<rect x="795" y="205" width="160" height="115" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="875" y="232.62" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#172b3a">
+<tspan x="875" dy="0">Knowledge</tspan>
+<tspan x="875" dy="23">Matching</tspan>
+<tspan x="875" dy="23">Catalog</tspan>
+<tspan x="875" dy="23">aliases</tspan>
+</text>
+<line x1="955" y1="263" x2="990" y2="263" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<rect x="980" y="205" width="160" height="115" rx="16" fill="#eef8f5" stroke="#2f6f73" stroke-width="2"/>
+<text x="1060" y="232.62" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#172b3a">
+<tspan x="1060" dy="0">Nutrition</tspan>
+<tspan x="1060" dy="23">Calculation</tspan>
+<tspan x="1060" dy="23">Sugar, sodium,</tspan>
+<tspan x="1060" dy="23">fat, fiber</tspan>
+</text>
+<line x1="1140" y1="263" x2="1175" y2="263" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<rect x="1165" y="205" width="160" height="115" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="1245" y="232.62" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#172b3a">
+<tspan x="1245" dy="0">Personalized</tspan>
+<tspan x="1245" dy="23">Scoring</tspan>
+<tspan x="1245" dy="23">Family and</tspan>
+<tspan x="1245" dy="23">conditions</tspan>
+</text>
+<line x1="1325" y1="263" x2="1360" y2="263" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<rect x="1350" y="205" width="160" height="115" rx="16" fill="#eef8f5" stroke="#2f6f73" stroke-width="2"/>
+<text x="1430" y="232.62" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#172b3a">
+<tspan x="1430" dy="0">Anomaly</tspan>
+<tspan x="1430" dy="23">Detection</tspan>
+<tspan x="1430" dy="23">Unusual</tspan>
+<tspan x="1430" dy="23">purchases</tspan>
+</text>
+<line x1="1510" y1="263" x2="1545" y2="263" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<rect x="1535" y="205" width="160" height="115" rx="16" fill="#ffffff" stroke="#2f6f73" stroke-width="2"/>
+<text x="1615" y="232.62" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#172b3a">
+<tspan x="1615" dy="0">Recommendation</tspan>
+<tspan x="1615" dy="23">Engine</tspan>
+<tspan x="1615" dy="23">Actions and</tspan>
+<tspan x="1615" dy="23">swaps</tspan>
+</text>
+<line x1="1695" y1="263" x2="1730" y2="263" stroke="#526b73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<rect x="1720" y="205" width="160" height="115" rx="16" fill="#eef8f5" stroke="#2f6f73" stroke-width="2"/>
+<text x="1800" y="232.62" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#172b3a">
+<tspan x="1800" dy="0">Explainable</tspan>
+<tspan x="1800" dy="23">Output</tspan>
+<tspan x="1800" dy="23">Dashboard and</tspan>
+<tspan x="1800" dy="23">report</tspan>
+</text>
+</svg>

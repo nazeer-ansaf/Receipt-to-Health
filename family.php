@@ -8,29 +8,33 @@ $message = '';
 $healthProfile = load_user_health_profile();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    ensure_directory(DATA_DIR);
-    $profile = [
-        'household_name' => trim((string)($_POST['household_name'] ?? 'My Household')),
-        'family_size' => max(1, min(20, (int)($_POST['family_size'] ?? 1))),
-        'age_group' => preg_replace('/[^a-zA-Z_-]/', '', (string)($_POST['age_group'] ?? 'mixed')),
-        'conditions' => array_values(array_filter((array)($_POST['conditions'] ?? []))),
-        'updated_at' => date('c'),
-    ];
-    file_put_contents($profilePath, json_encode($profile, JSON_PRETTY_PRINT));
-    $message = 'Family profile saved for project demonstration.';
+    if (!is_valid_csrf_token((string)($_POST['csrf_token'] ?? ''))) {
+        $message = 'Security token expired. Please refresh the page and try again.';
+    } else {
+        ensure_directory(DATA_DIR);
+        $profile = [
+            'household_name' => trim((string)($_POST['household_name'] ?? 'My Household')),
+            'family_size' => max(1, min(20, (int)($_POST['family_size'] ?? 1))),
+            'age_group' => preg_replace('/[^a-zA-Z_-]/', '', (string)($_POST['age_group'] ?? 'mixed')),
+            'conditions' => array_values(array_filter((array)($_POST['conditions'] ?? []))),
+            'updated_at' => date('c'),
+        ];
+        file_put_contents($profilePath, json_encode($profile, JSON_PRETTY_PRINT));
+        $message = 'Family profile saved for project demonstration.';
+    }
 }
 
 $profile = is_file($profilePath)
     ? json_decode((string)file_get_contents($profilePath), true)
     : [
         'household_name' => 'My Household',
-        'family_size' => 4,
+        'family_size' => 1,
         'age_group' => 'mixed',
         'conditions' => ['diabetes'],
     ];
 
 if (!is_array($profile)) {
-    $profile = ['household_name' => 'My Household', 'family_size' => 4, 'age_group' => 'mixed', 'conditions' => []];
+    $profile = ['household_name' => 'My Household', 'family_size' => 1, 'age_group' => 'mixed', 'conditions' => []];
 }
 
 $conditions = $profile['conditions'] ?? [];
@@ -51,6 +55,7 @@ page_hero(
     <article class="panel span-7">
         <h2>Household Configuration</h2>
         <form method="post">
+            <?= csrf_field() ?>
             <label>
                 <span>Household name</span>
                 <input type="text" name="household_name" value="<?= e($profile['household_name'] ?? '') ?>" required>
@@ -59,7 +64,7 @@ page_hero(
             <div class="grid two">
                 <label>
                     <span>Family members</span>
-                    <input type="number" name="family_size" min="1" max="20" value="<?= e($profile['family_size'] ?? 4) ?>" required>
+                    <input type="number" name="family_size" min="1" max="20" value="<?= e($profile['family_size'] ?? 1) ?>" required>
                 </label>
                 <label>
                     <span>Age group</span>
@@ -119,23 +124,44 @@ page_hero(
 
 <section class="panel">
     <h2>Detailed Family Member Profiles</h2>
-    <?php if (empty($healthProfile['family_members'])): ?>
-        <p class="muted">Add named family members on the Health Profile page to personalize reports more deeply.</p>
+
+    <?php
+    $familyMembers = $healthProfile['family_members'] ?? [];
+    $familySize = max(1, (int)($profile['family_size'] ?? 1));
+
+    // Show only the number of members specified in family_size
+    $familyMembers = array_slice($familyMembers, 0, $familySize);
+    ?>
+
+    <?php if (empty($familyMembers)): ?>
+        <p class="muted">
+            Add named family members on the Health Profile page to personalize reports more deeply.
+        </p>
     <?php else: ?>
         <div class="family-member-mini-grid">
-            <?php foreach ($healthProfile['family_members'] as $member): ?>
+            <?php foreach ($familyMembers as $member): ?>
                 <article>
                     <strong><?= e($member['name'] ?? 'Family member') ?></strong>
-                    <span><?= e(str_replace('_', ' ', (string)($member['age_group'] ?? 'adult'))) ?></span>
+                    <span><?= e(ucwords(str_replace('_', ' ', (string)($member['age_group'] ?? 'adult')))) ?></span>
                     <small><?= e(condition_text(['conditions' => $member['conditions'] ?? []])) ?></small>
-                    <?php if (trim((string)($member['notes'] ?? '')) !== ''): ?>
+
+                    <?php if (!empty(trim((string)($member['notes'] ?? '')))): ?>
                         <p><?= e($member['notes']) ?></p>
                     <?php endif; ?>
                 </article>
             <?php endforeach; ?>
         </div>
+
+        <?php if (count($healthProfile['family_members'] ?? []) > $familySize): ?>
+            <p class="muted">
+                Showing <?= $familySize ?> of <?= count($healthProfile['family_members']) ?> family members.
+            </p>
+        <?php endif; ?>
     <?php endif; ?>
-    <p class="muted"><a class="table-link" href="profile_setup.php">Edit detailed family member profiles</a></p>
+
+    <p class="muted">
+        <a class="table-link" href="profile_setup.php">Edit detailed family member profiles</a>
+    </p>
 </section>
 
 <?php render_page_end(); ?>

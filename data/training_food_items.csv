@@ -1,0 +1,139 @@
+receipt_line,label,category,sugar_g,saturated_fat_g,sodium_mg,fiber_g,risk,recommendation,aliases,alternatives
+anchor fresh milk 1l,milk
+highland milk carton,milk
+fresh milk 2 bottles,milk
+low fat milk pack,milk
+milk powder 400g,milk
+white sandwich bread,bread
+bread loaf 1,bread
+bakery bread sliced,bread
+whole grain bread,bread
+toast bread packet,bread
+coca cola 1.5l,soda
+pepsi bottle,soda
+sprite soft drink,soda
+carbonated drink 2,soda
+cola can 330ml,soda
+lays potato chips,chips
+pringles crisps,chips
+potato chips family pack,chips
+salted chips 2,chips
+crisps packet,chips
+red apple 6,apple
+green apples bag,apple
+apple fruit 4,apple
+fresh apples,apple
+fuji apple,apple
+white rice 5kg,rice
+raw rice packet,rice
+samba rice bag,rice
+basmati rice,rice
+rice 2kg,rice
+carrot 1kg,vegetables
+broccoli bunch,vegetables
+spinach leaves,vegetables
+mixed vegetables pack,vegetables
+fresh veg bundle,vegetables
+plain yogurt,yogurt
+flavored yoghurt cup,yogurt
+curd pot,yogurt
+vanilla yogurt,yogurt
+greek yogurt,yogurt
+cheddar cheese,cheese
+mozzarella block,cheese
+cheese slices,cheese
+processed cheese,cheese
+cheese spread,cheese
+rolled oats,oats
+oatmeal packet,oats
+quick oats,oats
+oats 500g,oats
+instant oatmeal,oats
+corn flakes cereal,cereal
+breakfast cereal,cereal
+choco cereal,cereal
+cereal box,cereal
+honey flakes,cereal
+orange juice,juice
+fruit juice carton,juice
+mango juice bottle,juice
+apple juice 1l,juice
+juice pack,juice
+cream biscuits,cookies
+chocolate cookies,cookies
+cookie pack,cookies
+biscuits tin,cookies
+sweet biscuit,cookies
+dairy milk chocolate,chocolate
+choco bar,chocolate
+candy chocolate,chocolate
+dark chocolate,chocolate
+milk chocolate,chocolate
+banana bunch,banana
+fresh bananas,banana
+banana 1kg,banana
+ripe banana,banana
+plantain banana,banana
+orange fruit,orange
+fresh oranges,orange
+mandarin orange,orange
+orange 6,orange
+citrus orange,orange
+red beans,beans
+lentils packet,beans
+dhal 1kg,beans
+dal pack,beans
+chickpeas tin,beans
+chicken breast,chicken
+fresh chicken,chicken
+chicken thighs,chicken
+whole chicken,chicken
+grilled chicken,chicken
+tuna can,fish
+salmon fillet,fish
+sardine tin,fish
+fresh fish,fish
+fish slices,fish
+sausages pack,sausages
+chicken sausage,chicken sausage
+hot dog packet,sausages
+processed meat,sausages
+sausage 10pcs,sausages
+instant noodles,noodles
+ramen pack,noodles
+maggi noodles,noodles
+noodle cup,noodles
+fried noodles pack,noodles
+tomato sauce,sauce
+ketchup bottle,sauce
+soy sauce,sauce
+chilli sauce,sauce
+sauce sachet,sauce
+cooking oil 1l,oil
+vegetable oil bottle,oil
+coconut oil,oil
+sunflower oil,oil
+oil packet,oil
+peanuts pack,nuts
+almonds 200g,nuts
+cashew nuts,nuts
+mixed nuts,nuts
+unsalted nuts,nuts
+"milk 2",milk,dairy,,,,,"moderate dairy sugar",,milk,
+"bread 2",bread,grain,,,,,"refined carbohydrate",,bread,
+"soda 3",soda,"sugary drink",,,,,"high sugar",,soda,
+"chips 2",chips,snack,,,,,"high sodium snack",,chips,
+"apple 6",apple,fruit,,,,,"low risk",,apple,
+365wfm orange no pulp,juice
+s65wfm og vdk pasta,pasta
+bf chk stew meat,beef stew meat
+365wfm ched jack shred,shredded jack cheese
+365wfm og heavy cream,heavy cream
+og heavy cream,heavy cream
+salmon fillet,salmon fillet
+wfm og chicken sausage,chicken sausage
+english cucumber,cucumber
+365wfm og wht slcd mshrm,mushrooms
+slcd mshrm,mushrooms
+365wfm almond tortillas,almond tortillas
+365wfm cassava tortillas,cassava tortillas

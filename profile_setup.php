@@ -13,12 +13,24 @@ $saved = false;
 $profile = load_user_health_profile($user);
 $recordStatus = (string)($_GET['record_status'] ?? '');
 $recordError = trim((string)($_GET['record_error'] ?? ''));
+$profileError = '';
+$relationshipOptions = family_relationship_options();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $profile = array_replace($profile, sanitize_profile_payload($_POST));
-    save_user_health_profile($profile, $user);
-    $profile = load_user_health_profile($user);
-    $saved = true;
+    if (!is_valid_csrf_token((string)($_POST['csrf_token'] ?? ''))) {
+        $profileError = 'Security token expired. Please refresh the page and try again.';
+    } else {
+        $sanitizedProfile = sanitize_profile_payload($_POST);
+
+        if (has_multiple_self_relationships($sanitizedProfile['family_members'] ?? [])) {
+            $profileError = 'Only one active household member can be marked as Self.';
+        } else {
+            $profile = array_replace($profile, $sanitizedProfile);
+            save_user_health_profile($profile, $user);
+            $profile = load_user_health_profile($user);
+            $saved = true;
+        }
+    }
 }
 
 $analysis = $profile['analysis'] ?: generate_health_profile_analysis($profile);
@@ -73,6 +85,9 @@ page_hero(
 <?php if ($recordError !== ''): ?>
     <section class="warning-text"><?= e($recordError) ?></section>
 <?php endif; ?>
+<?php if ($profileError !== ''): ?>
+    <section class="warning-text"><?= e($profileError) ?></section>
+<?php endif; ?>
 
 <section class="score-band">
     <article class="metric">
@@ -101,6 +116,7 @@ page_hero(
     <article class="panel span-7">
         <h2>Profile Details</h2>
         <form method="post" class="profile-form">
+            <?= csrf_field() ?>
             <div class="grid two">
                 <label>
                     <span>Your name</span>
@@ -115,7 +131,7 @@ page_hero(
             <div class="grid two">
                 <label>
                     <span>Family members</span>
-                    <input type="number" name="family_size" min="1" max="20" value="<?= e($profile['family_size'] ?? 4) ?>" required>
+                    <input type="number" name="family_size" min="1" max="20" value="<?= e($profile['family_size'] ?? 1) ?>" required>
                 </label>
                 <label>
                     <span>Age group</span>
@@ -187,28 +203,38 @@ page_hero(
 
             <section class="embedded-form-section">
                 <h2>Family Member Profiles</h2>
-                <div class="family-member-editor">
+                <div class="family-member-editor" data-family-member-editor>
                     <?php
                         $memberRows = $profile['family_members'] ?? [];
-                        for ($index = 0; $index < 4; $index++):
+                        $familySize = max(1, min(20, (int)($profile['family_size'] ?? 1)));
+                        for ($index = 0; $index < $familySize; $index++):
                             $member = is_array($memberRows[$index] ?? null) ? $memberRows[$index] : ['name' => '', 'age_group' => 'adult', 'conditions' => [], 'notes' => ''];
                             $memberConditions = is_array($member['conditions'] ?? null) ? $member['conditions'] : [];
                     ?>
-                        <article class="family-member-card">
+                        <article class="family-member-card" data-family-member-card data-family-member-index="<?= e($index) ?>">
                             <div class="grid two">
                                 <label>
                                     <span>Member name</span>
                                     <input type="text" name="member_name[]" value="<?= e($member['name'] ?? '') ?>" placeholder="Example: mother, father, child">
                                 </label>
                                 <label>
+                                    <span>Relationship</span>
+                                    <select name="member_relationship[]">
+                                        <?php foreach ($relationshipOptions as $value => $label): ?>
+                                            <option value="<?= e($value) ?>" <?= ($member['relationship'] ?? '') === $value ? 'selected' : '' ?>><?= e($label) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <label>
                                     <span>Age group</span>
                                     <select name="member_age_group[]">
                                         <?php foreach ($ageGroups as $value => $label): ?>
                                             <option value="<?= e($value) ?>" <?= ($member['age_group'] ?? 'adult') === $value ? 'selected' : '' ?>><?= e($label) ?></option>
                                         <?php endforeach; ?>
                                     </select>
-                                </label>
-                            </div>
+                            </label>
 
                             <fieldset>
                                 <legend>Member conditions</legend>
@@ -229,6 +255,7 @@ page_hero(
                         </article>
                     <?php endfor; ?>
                 </div>
+                <p class="relationship-validation-message" data-family-relationship-error hidden role="alert"></p>
             </section>
 
             <div class="form-actions">
@@ -257,6 +284,7 @@ page_hero(
     <article class="panel span-5">
         <h2>Medical Records</h2>
         <form class="medical-record-form" action="api/upload_medical_record.php" method="post" enctype="multipart/form-data">
+            <?= csrf_field() ?>
             <label>
                 <span>Record title</span>
                 <input type="text" name="title" maxlength="160" placeholder="Example: blood report, prescription, discharge summary">

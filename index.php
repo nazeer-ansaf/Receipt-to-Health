@@ -1,9 +1,11 @@
 <?php
 require_once __DIR__ . '/includes/layout.php';
 require_once __DIR__ . '/includes/profile.php';
+require_once __DIR__ . '/includes/results.php';
 
 $healthProfile = load_user_health_profile();
 $profileConditions = $healthProfile['conditions'] ?? [];
+$recentResults = array_slice(load_all_results(), 0, 3);
 
 render_page_start('Upload Receipt', 'upload');
 page_hero(
@@ -24,11 +26,16 @@ page_hero(
     <article class="panel span-8">
         <h2>Analyze Your Receipt</h2>
         <p class="muted">Keep this simple: choose the receipt, add the household context, then run analysis. Leave item review on if you want to correct OCR mistakes first.</p>
-        <form id="receipt-form" action="api/process_receipt.php" method="post" enctype="multipart/form-data">
+        <form id="receipt-form" action="api/process_receipt.php" method="post" enctype="multipart/form-data" data-analysis-form>
+            <?= csrf_field() ?>
+            <div class="analysis-mode-switch" role="group" aria-label="Choose receipt input">
+                <button class="button ghost is-active" type="button" data-analysis-mode="image" aria-pressed="true">Receipt image</button>
+                <button class="button ghost" type="button" data-analysis-mode="text" aria-pressed="false">Paste receipt text</button>
+            </div>
             <div class="grid two">
                 <label>
                     <span>Family members</span>
-                    <input type="number" name="family_size" min="1" max="20" value="<?= e($healthProfile['family_size'] ?? 4) ?>" required>
+                    <input type="number" name="family_size" min="1" max="20" value="<?= e($healthProfile['family_size'] ?? 1) ?>" required>
                 </label>
 
                 <label>
@@ -53,11 +60,40 @@ page_hero(
                 </div>
             </fieldset>
 
-            <label class="upload-box" data-empty-label="No receipt selected">
-                <span>Receipt image or text file</span>
-                <input type="file" name="receipt" accept=".jpg,.jpeg,.png,.webp,.txt" required>
-                <small>Photo receipts work best when the image is bright, flat, and readable.</small>
-            </label>
+            <div data-analysis-panel="image">
+                <label class="upload-box" tabindex="0" data-empty-label="Drop receipt here or choose a file" aria-describedby="upload-help">
+                    <span data-upload-title>Drop receipt here</span>
+                    <input type="file" name="receipt" accept="image/*,.txt" capture="environment" required>
+                    <small id="upload-help">Click to choose, drag and drop, or use your camera on mobile. JPG, PNG, WEBP, or TXT.</small>
+                    <small class="upload-state" data-upload-state aria-live="polite">Ready</small>
+                </label>
+                <button class="button ghost camera-capture-button" type="button" data-open-camera>Use laptop camera</button>
+                <div class="camera-capture" data-camera-panel hidden>
+                    <video data-camera-video autoplay playsinline muted aria-label="Live laptop camera preview"></video>
+                    <div class="camera-capture-actions">
+                        <button class="button primary" type="button" data-capture-camera>Take photo</button>
+                        <button class="button ghost" type="button" data-close-camera>Cancel</button>
+                    </div>
+                    <p class="muted" data-camera-message>Camera access is used only after you choose to take a photo.</p>
+                </div>
+                <div class="receipt-preview" data-receipt-preview hidden>
+                    <div class="receipt-preview-header"><strong>Selected receipt</strong><button class="button ghost" type="button" data-remove-receipt>Remove</button></div>
+                    <img data-receipt-preview-image alt="Selected receipt preview" hidden>
+                    <div class="receipt-preview-file" data-receipt-preview-file hidden></div>
+                    <div class="receipt-preview-meta" data-receipt-preview-meta></div>
+                    <div class="receipt-quality-warning" data-receipt-quality-warning role="status" hidden></div>
+                    <div class="receipt-preview-actions"><button class="button ghost" type="button" data-rotate="-90">Rotate left</button><button class="button ghost" type="button" data-rotate="90">Rotate right</button></div>
+                </div>
+                <div class="form-message" data-upload-message role="alert" hidden></div>
+            </div>
+
+            <div data-analysis-panel="text" hidden>
+                <label>
+                    <span>Paste receipt text</span>
+                    <textarea name="receipt_text" rows="9" placeholder="Example: milk 2&#10;bread 1&#10;apples 4" disabled></textarea>
+                    <small>Use this when you do not have a receipt image. The same analysis and review flow applies.</small>
+                </label>
+            </div>
 
             <label class="inline-option">
                 <input type="checkbox" name="review_items" value="1" checked>
@@ -70,7 +106,9 @@ page_hero(
                 <small>Words like pregnant, diabetic, child, only one person, or low salt make the advice more personal.</small>
             </label>
 
-            <button class="button primary" type="submit">Analyze receipt</button>
+            <p class="privacy-note">Your receipt is processed for nutrition analysis. Review detected items before relying on the health score.</p>
+            <div class="form-message" data-form-message role="alert" hidden></div>
+            <div class="analysis-submit-row"><button class="button primary" type="submit">Analyze receipt</button><span class="muted" data-submit-status aria-live="polite">Ready to analyze</span></div>
         </form>
     </article>
 
@@ -92,6 +130,17 @@ page_hero(
         </div>
     </aside>
 </section>
+
+<?php if ($recentResults): ?>
+<section class="panel recent-analyses">
+    <div class="section-heading"><div><h2>Recent Analyses</h2><p class="muted">Quick access to your latest results.</p></div><a class="table-link" href="history.php">View history</a></div>
+    <div class="recent-analysis-list">
+        <?php foreach ($recentResults as $recent): ?>
+            <a href="dashboard.php?id=<?= e($recent['_id']) ?>"><strong><?= e($recent['receipt_metadata']['store_name'] ?? ($recent['receipt_asset']['original_name'] ?? 'Receipt')) ?></strong><span><?= e(date('M d, Y', $recent['_created_at'])) ?> · <?= e($recent['health_score']['label'] ?? 'Completed') ?></span><b>View</b></a>
+        <?php endforeach; ?>
+    </div>
+</section>
+<?php endif; ?>
 
 <section class="panel friendly-callout">
     <h2>Active Health Profile</h2>
