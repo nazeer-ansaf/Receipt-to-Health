@@ -90,7 +90,6 @@ chicken thighs,chicken
 whole chicken,chicken
 grilled chicken,chicken
 tuna can,fish
-salmon fillet,fish
 sardine tin,fish
 fresh fish,fish
 fish slices,fish
@@ -137,3 +136,55 @@ english cucumber,cucumber
 slcd mshrm,mushrooms
 365wfm almond tortillas,almond tortillas
 365wfm cassava tortillas,cassava tortillas
+"2 ham cheese 74 000",cheese,dairy,,,,,"high sodium dairy",,cheese,,user_feedback,feedback:e0ef6d50f01f793fe7ac24465596206c4d50b1f2
+"bar s meat frnk",sausages,"processed meat",,,,,"processed meat sodium",,sausages,,user_feedback,feedback:0c4e0567bc5d842007bdde00ef15e9d6d6f280d6
+"winco noodles",noodles,"processed grain",,,,,"high sodium instant food",,noodles,,user_feedback,feedback:be7689d48d98ff5187a996757197f751ef386eaa
+"bananas loose",banana,fruit,,,,,"low risk",,banana,,user_feedback,feedback:eac69c0a839baa70d6f09f188bfb48929ae07c83
+"black beans",beans,legume,,,,,"low risk",,beans,,user_feedback,feedback:341ec05d9c1d0e4b01c74be9090a9e5005a81611
+"f l english cucumb",cucumber,vegetable,,,,,"low risk",,cucumber,,user_feedback,feedback:f6dd121d2dde9595dbec6d772ee689318d4968a2
+"ut gala apples og 3 26 b",apple,fruit,,,,,"low risk",,apple,,user_feedback,feedback:a5ac27876bc75b2a0e224a089aa3fbfcb8e67dbf
+"pl tortilla s","almond tortillas","grain alternative",,,,,"packaged grain sodium",,"almond tortillas",,user_feedback,feedback:16040ba58e6f418c69ebc59900024731198be2bc
+"mahi mahi fillets","salmon fillet",protein,,,,,"low risk",,"salmon fillet",,user_feedback,feedback:b449ba8a0602942465cdc90abddf6c68ec1a5419
+Soda,soda,,0.56,,0.017,,,,,,external_local,external:50eab3d432cc6e1a965165371a27db22f18e87ec
+nuts,nuts,,,,,,,,,,external_local,external:fe6b4b50cec761cacb68b9cc15bdb7ad571a12f6
+Milk,milk,,4.58,2.08,0.05,0,,,,,external_local,external:cf5dbf0ec57dff5da56d86c45b3bdd11849a065a
+Buttermilk,buttermilk dessert,,5.42,1.04,0.121,0,,,,,external_local,external:ccf1b2b7dbde91e458e9e213079cbbf4ba121f5b
+Cookies,cookies,,35.71,17.86,0.339,3.6,,,,,external_local,external:d2bd354967d6da5d68c9540c90a6352e927c88c6
+Margarine,margarine,,0,21.43,0.75,0,,,,,external_local,external:f8508fa75b2a164a045303cfc54c555a8f7248d1
+Rice,rice,,,,0,,,,,,external_local,external:6939278d66e34fcfb23131504217025e78249a8b
+Juice,juice,,0,,0,,,,,,external_local,external:07ef879175424a11fbc65e95737df3df8822b8a6
+Bread,bread,,7.14,0,0.536,3.6,,,,,external_local,external:6ff291d8175b1d624892cd459444104fbd7ce87f
+Sauce,sauce,,44.44,0,0,0,,,,,external_local,external:80e6e79c90aacb66dd6aada046066387e2542ce6
+Chocolate,chocolate,,57.14,19.05,0.071,0,,,,,external_local,external:891c5feef171da85aadd3fdb8130ba509b03f5ea
+Yogurt,yogurt,,,,,,,,,,external_local,external:7a7453043a7d8214e71e9d1e3082e96d44e85f43
+Chicken,chicken,,3.12,4.69,1.156,0,,,,,external_local,external:cef7e59218e3a7e18aaf7faa4a23bcd964323a66
+Heavy Cream,heavy cream,,6.67,23.33,0.033,0,,,,,external_local,external:75fcd79daf028cc907ca14dd071d0ca11ef52468
+Rice Crackers,crackers,,3.33,0,0.567,0,,,,,external_local,external:d17f3f50a1b09f995e2c16b83c2e340f626dc887
+Cheese,cheese,,0,21.43,0.679,0,,,,,external_local,external:bcef7a046258082993759bade995b3ae8bee26c7
+Cereal,cereal,,22.81,2.63,0.368,5.3,,,,,external_local,external:1a44e94804d4bec1db9f794f4f36d00188aac4f1
+Chips,chips,,,,,,,,,,external_local,external:1247eb8f560d72ae8727332dc14fdcb89d8a64bc
+Egg,eggs,,0,0,0.195,0.9,,,,,external_local,external:4fa6024f12494d3a99d8bda9b7a55f7d140f328a
+Pasta,pasta,,3.57,0,0,3.6,,,,,external_local,external:46139b0b16d7696468a818ef81ab82a93691f7d5
+Sausages,sausages,,1.79,8.04,0.929,0,,,,,external_local,external:d00eefc401c52ea50740691efe652391c8c02f15
+Coffee,coffee,,0.84,0,0.002,,,,,,external_local,external:44213f9f4d59b557314fadcd233232eebcac8012
+Eggs,eggs,,47.06,10.29,0.412,2.9,,,,,external_local,external:bd111dcb4b343de4ec0a79d2d5ec55a3919c79c4
+Dairy Dessert,buttermilk dessert,,12.67,2.67,0.043,0,,,,,external_local,external:030eccd02cbf88790684af0627e716662b32c3d4
+Muesli,muesli,,17.24,1.72,0,6.9,,,,,external_local,external:0a362b7528cb3a818f8ef2ffbc5db2ca2860109d
+Mushrooms,mushrooms,,1.18,0,0.012,1.2,,,,,external_local,external:986e64ff8850fb408ee631cd9de463f927cecc9b
+Crackers,crackers,,0,3.33,0.767,3.3,,,,,external_local,external:45a880c9d37f1dd78d74f99785864bb30bc8bff8
+Mushroom,mushrooms,,0,0,0.269,1.5,,,,,external_local,external:917eaf5e285100d7ffc3d77a10c81740950e1ab2
+Noodles,noodles,,3.51,0.88,0.035,3.5,,,,,external_local,external:00ac24f8c42dc2a556a0851ca5eff0fc6d40334d
+Organic Chicken Sausage,chicken sausage,,0,0.74,0.779,0,,,,,external_local,external:483917fd74d76f9e6359c332ca356d2cf5ce3420
+Oats,oats,,2.5,1.25,0,10,,,,,external_local,external:4b6cc5f2c3e5c93cbfbb6520840e36e87e4d1ff8
+Macaroni,macaroni,,,,,,,,,,external_local,external:d9677a4f9713902baffec27846bd4dc2d963bfa3
+Instant Coffee,coffee,,,,0,,,,,,external_local,external:929fb1925da938f1bdc91ef656a1f658349b7847
+Apple,apple,,10.39,,0,3.2,,,,,external_local,external:d0be2dc421be4fcd0172e5afceea3970e2f3d940
+Beef Stew Meat,beef stew meat,,,3.57,0.054,,,,,,external_local,external:920f657b740fc5fe131703d023da167e0e1450ff
+Oil,oil,,0,10,0.833,0,,,,,external_local,external:a5f58c39cc52df3f76d2d4961ce655166c21ca24
+Organic Pasta,pasta,,5.26,6.14,0.825,3.5,,,,,external_local,external:0507e3074e85440497149d787e055df430a0e0d0
+Banana,banana,,57.14,0,0.007,1.8,,,,,external_local,external:250e77f12a5ab6972a0895d290c4792f0a326ea8
+Beans,beans,,0,0,0.01,26,,,,,external_local,external:3cf7c8d099c22f6dcdcb4e2babac6502b1fa8f00
+Orange,orange,,10.5,0.1,0,0,,,,,external_local,external:ef0ebbb77298e1fbd81f756a4efc35b977c93dae
+Free Range Eggs,heart foundation tick product of australia,"Heart Foundation tick,Product of Australia",,,,,,,,,external_local,external:805f55955066127263b8af325c80c65aacdd4f42
+cucumber,m038m,M038M,,,,,,,,,external_local,external:868d099240a8559516616b4aea15c08c773d788b
+Vegetables,vegetables,,6,8,2.00787401574803,8,,,,,external_local,external:9cc860a01c991fdc09b074ba67acb377a1afe939

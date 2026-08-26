@@ -3,11 +3,13 @@ import os
 import subprocess
 import sys
 import tempfile
+import sys
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 PROCESS_SCRIPT = os.path.join(ROOT_DIR, "python", "process_receipt.py")
 SAMPLE_RECEIPT = os.path.join(ROOT_DIR, "samples", "demo_receipt.txt")
+sys.path.insert(0, os.path.dirname(__file__))
 
 
 def run_pipeline(input_path):
@@ -90,6 +92,31 @@ def assert_unmatched_lines_contract():
             pass
 
 
+def assert_group_split_contract():
+    import train_food_model
+
+    rows, _, _, _, _ = train_food_model.load_dataset(os.path.join(ROOT_DIR, "data", "training_food_items.csv"))
+    splits, _ = train_food_model.split_groups(rows)
+    groups = {
+        name: {rows[index]["variant_group"] for index in indices}
+        for name, indices in splits.items()
+    }
+    if groups["train"] & groups["validation"] or groups["train"] & groups["test"] or groups["validation"] & groups["test"]:
+        raise AssertionError(f"Variant groups cross evaluation splits: {groups}")
+
+
+def assert_ocr_failure_contract():
+    import process_receipt
+
+    text = process_receipt.extract_text(os.path.join(ROOT_DIR, "missing-receipt-for-verification.jpg"))
+    if text.strip() or process_receipt.OCR_STATUS.get("status") != "failure":
+        raise AssertionError("Normal OCR failure produced fallback/demo text.")
+
+    demo_text = process_receipt.extract_text(os.path.join(ROOT_DIR, "missing-receipt-for-demo.jpg"), demo_mode=True)
+    if "milk 2" not in demo_text or process_receipt.OCR_STATUS.get("status") != "demo_text":
+        raise AssertionError("Explicit demo mode fallback is not working.")
+
+
 def main():
     if not os.path.isfile(SAMPLE_RECEIPT):
         raise AssertionError(f"Missing sample receipt: {SAMPLE_RECEIPT}")
@@ -97,6 +124,14 @@ def main():
     result = run_pipeline(SAMPLE_RECEIPT)
     assert_sample_receipt_contract(result)
     assert_unmatched_lines_contract()
+    assert_group_split_contract()
+    assert_ocr_failure_contract()
+
+    unknown_evaluation = {}
+    metrics_path = os.path.join(ROOT_DIR, "python", "models", "food_classifier_metrics.json")
+    if os.path.isfile(metrics_path):
+        with open(metrics_path, "r", encoding="utf-8") as metrics_file:
+            unknown_evaluation = json.load(metrics_file).get("unknown_evaluation", {})
 
     print(json.dumps({
         "status": "ok",
@@ -104,6 +139,9 @@ def main():
         "ml_status": result["ml_classification"]["status"],
         "score": result["health_score"]["score"],
         "recommendation_count": len(result["recommendations"]),
+        "group_split_status": "ok",
+        "ocr_failure_status": "ok",
+        "unknown_rejection_rate": unknown_evaluation.get("rejection_rate"),
     }))
 
 

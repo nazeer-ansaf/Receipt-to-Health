@@ -22,6 +22,27 @@ function contains_query(string $haystack, string $needle): bool
     return $needle !== '' && str_contains(strtolower($haystack), $needle);
 }
 
+function catalog_search_text(array $food): string
+{
+    $parts = [];
+
+    foreach (['name', 'category', 'risk', 'recommendation', 'aliases', 'alternatives'] as $field) {
+        $value = $food[$field] ?? null;
+        if (is_array($value)) {
+            array_walk_recursive($value, static function ($item) use (&$parts): void {
+                if (is_scalar($item)) {
+                    $parts[] = (string)$item;
+                }
+            });
+        } elseif (is_scalar($value)) {
+            $parts[] = (string)$value;
+        }
+    }
+
+
+    return implode(' ', $parts);
+}
+
 if ($needle !== '') {
     foreach (nav_items() as $item) {
         if (contains_query($item['label'], $needle) || contains_query($item['href'], $needle)) {
@@ -30,7 +51,7 @@ if ($needle !== '') {
     }
 
     foreach (food_catalog() as $food) {
-        $searchText = implode(' ', array_map('strval', $food));
+        $searchText = catalog_search_text($food);
         if (contains_query($searchText, $needle)) {
             add_match(
                 $matches,

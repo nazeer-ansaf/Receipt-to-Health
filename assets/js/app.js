@@ -696,3 +696,28 @@ if ('IntersectionObserver' in window && !prefersReducedMotion()) {
 } else {
     numericMetrics.forEach(animateNumber);
 }
+
+document.querySelectorAll('[data-csv-upload]').forEach((input) => {
+    const form = input.closest('form');
+    const limit = Number(input.dataset.maxBytes || 0);
+    const message = document.createElement('p');
+    message.className = 'warning-text';
+    message.hidden = true;
+    input.closest('label')?.after(message);
+
+    const validateCsvSize = () => {
+        const file = input.files?.[0];
+        const tooLarge = Boolean(file && limit && file.size > limit);
+        message.textContent = tooLarge
+            ? 'This CSV is larger than the 10 MB upload limit. Choose a smaller file.'
+            : '';
+        message.hidden = !tooLarge;
+        if (tooLarge) input.value = '';
+        return !tooLarge;
+    };
+
+    input.addEventListener('change', validateCsvSize);
+    form?.addEventListener('submit', (event) => {
+        if (!validateCsvSize()) event.preventDefault();
+    });
+});

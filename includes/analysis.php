@@ -14,7 +14,7 @@ function sanitize_conditions(array $conditions): array
     )));
 }
 
-function run_python_analysis(string $inputPath, int $familySize, string $ageGroup, array $conditions, string $healthNotes = ''): array
+function run_python_analysis(string $inputPath, int $familySize, string $ageGroup, array $conditions, string $healthNotes = '', bool $demoMode = false): array
 {
     $pythonScript = ROOT_DIR . DIRECTORY_SEPARATOR . 'python' . DIRECTORY_SEPARATOR . 'process_receipt.py';
     $conditionText = implode(',', sanitize_conditions($conditions));
@@ -26,6 +26,10 @@ function run_python_analysis(string $inputPath, int $familySize, string $ageGrou
         . ' --age-group ' . escapeshellarg($ageGroup)
         . ' --conditions ' . escapeshellarg($conditionText)
         . ' --health-notes ' . escapeshellarg($healthNotes);
+
+    if ($demoMode) {
+        $command .= ' --demo-mode';
+    }
 
     $output = shell_exec($command);
     $result = json_decode($output ?? '', true);
@@ -187,7 +191,226 @@ function training_dataset_path(): string
     return DATA_DIR . DIRECTORY_SEPARATOR . 'training_food_items.csv';
 }
 
-function append_training_feedback(array $result, string $source = 'correction'): int
+function training_candidate_path(): string
+{
+    return DATA_DIR . DIRECTORY_SEPARATOR . 'training_candidates.csv';
+}
+
+function training_rejected_candidate_path(): string
+{
+    return DATA_DIR . DIRECTORY_SEPARATOR . 'training_candidates_rejected.csv';
+}
+
+function real_holdout_path(): string
+{
+    return DATA_DIR . DIRECTORY_SEPARATOR . 'real_receipt_holdout.csv';
+}
+
+function read_csv_records(string $path): array
+{
+    if (!is_file($path) || !($handle = fopen($path, 'r'))) {
+        return [];
+    }
+    $headers = fgetcsv($handle) ?: [];
+    $headers = array_map(static fn($header) => strtolower(trim((string)$header)), $headers);
+    $records = [];
+    while (($row = fgetcsv($handle)) !== false) {
+        $record = [];
+        foreach ($headers as $index => $header) {
+            $record[$header] = (string)($row[$index] ?? '');
+        }
+        $records[] = $record;
+    }
+    fclose($handle);
+    return $records;
+}
+
+function candidate_records(): array
+{
+    return read_csv_records(training_candidate_path());
+}
+
+function review_training_candidate(int $index, string $decision): array
+{
+    $records = candidate_records();
+    if (!isset($records[$index])) {
+        throw new RuntimeException('Training candidate no longer exists. Refresh and try again.');
+    }
+    $candidate = $records[$index];
+    $candidate['reviewed_at'] = date('c');
+    $candidate['decision'] = $decision;
+    $candidate['normalized_text'] = normalize_training_feedback_text((string)($candidate['receipt_line'] ?? ''));
+    $candidate['proposed_label'] = normalize_training_feedback_text((string)($candidate['label'] ?? ''));
+
+    if ($decision === 'approve') {
+        $approvedPath = training_dataset_path();
+        $approved = read_csv_records($approvedPath);
+        $line = $candidate['normalized_text'];
+        $label = $candidate['proposed_label'];
+        foreach ($approved as $row) {
+            $existingLine = normalize_training_feedback_text((string)($row['receipt_line'] ?? ''));
+            $existingLabel = normalize_training_feedback_text((string)($row['label'] ?? ''));
+            if ($existingLine === $line && $existingLabel !== $label) {
+                throw new RuntimeException('Approval blocked: this receipt line already maps to a different label.');
+            }
+            if ($existingLine === $line && $existingLabel === $label) {
+                throw new RuntimeException('Approval skipped: this example already exists in the approved dataset.');
+            }
+        }
+        $headers = ['receipt_line','label','category','sugar_g','saturated_fat_g','sodium_mg','fiber_g','risk','recommendation','aliases','alternatives','source','variant_group'];
+        $handle = fopen($approvedPath, 'a');
+        if (!$handle) {
+            throw new RuntimeException('Could not open approved training dataset.');
+        }
+        if (filesize($approvedPath) === 0) {
+            fputcsv($handle, $headers);
+        }
+        $candidate['source'] = 'user_feedback';
+        $candidate['variant_group'] = trim((string)($candidate['variant_group'] ?? '')) ?: 'feedback:' . sha1($line);
+        fputcsv($handle, array_map(static fn($header) => $candidate[$header] ?? '', $headers));
+        fclose($handle);
+    }
+
+    $remaining = [];
+    foreach ($records as $recordIndex => $record) {
+        if ($recordIndex !== $index) {
+            $remaining[] = $record;
+        }
+    }
+    $path = training_candidate_path();
+    $headers = ['receipt_line','label','category','sugar_g','saturated_fat_g','sodium_mg','fiber_g','risk','recommendation','aliases','alternatives','source','variant_group'];
+    $handle = fopen($path, 'w');
+    if ($handle) {
+        fputcsv($handle, $headers);
+        foreach ($remaining as $record) {
+            fputcsv($handle, array_map(static fn($header) => $record[$header] ?? '', $headers));
+        }
+        fclose($handle);
+    }
+    $audit = fopen(training_rejected_candidate_path(), 'a');
+    if ($audit) {
+        if (filesize(training_rejected_candidate_path()) === 0) {
+            fputcsv($audit, array_merge($headers, ['decision', 'reviewed_at']));
+        }
+        if ($decision === 'reject') {
+            fputcsv($audit, array_merge(array_map(static fn($header) => $candidate[$header] ?? '', $headers), ['reject', $candidate['reviewed_at']]));
+        }
+        fclose($audit);
+    }
+    return ['decision' => $decision, 'label' => $label ?? '', 'receipt_line' => $line ?? ''];
+}
+
+function normalize_training_feedback_text(string $value): string
+{
+    $value = strtolower(trim($value));
+    $value = preg_replace('/[^a-z0-9 ]+/', ' ', $value) ?? $value;
+    $value = preg_replace('/\s+/', ' ', $value) ?? $value;
+    return trim($value);
+}
+
+function holdout_records(): array
+{
+    return read_csv_records(real_holdout_path());
+}
+
+function holdout_receipt_ids(): array
+{
+    return array_values(array_unique(array_filter(array_map(
+        static fn($row) => trim((string)($row['receipt_id'] ?? '')),
+        holdout_records()
+    ))));
+}
+
+function holdout_receipt_already_added(string $receiptId): bool
+{
+    return in_array($receiptId, holdout_receipt_ids(), true);
+}
+
+function holdout_candidate_conflicts(array $candidates): array
+{
+    $trainingSources = [training_dataset_path(), DATA_DIR . DIRECTORY_SEPARATOR . 'generated_training_variants.csv', training_candidate_path()];
+    $known = [];
+    foreach ($trainingSources as $path) {
+        foreach (read_csv_records($path) as $row) {
+            $line = normalize_training_feedback_text((string)($row['receipt_line'] ?? ''));
+            if ($line !== '') {
+                $known[] = ['line' => $line, 'label' => normalize_training_feedback_text((string)($row['label'] ?? '')), 'source' => basename($path)];
+            }
+        }
+    }
+    foreach (food_catalog() as $food) {
+        $label = normalize_training_feedback_text((string)($food['name'] ?? ''));
+        $aliases = is_array($food['aliases'] ?? null) ? $food['aliases'] : [];
+        foreach (array_merge([$label], $aliases) as $alias) {
+            $line = normalize_training_feedback_text((string)$alias);
+            if ($line !== '') {
+                $known[] = ['line' => $line, 'label' => $label, 'source' => 'food_catalog'];
+            }
+        }
+    }
+    foreach (holdout_records() as $row) {
+        $line = normalize_training_feedback_text((string)($row['receipt_line'] ?? ''));
+        if ($line !== '') {
+            $known[] = ['line' => $line, 'label' => normalize_training_feedback_text((string)($row['label'] ?? '')), 'source' => 'real_receipt_holdout.csv'];
+        }
+    }
+
+    $conflicts = [];
+    foreach ($candidates as $candidate) {
+        $line = normalize_training_feedback_text((string)($candidate['receipt_line'] ?? ''));
+        $label = normalize_training_feedback_text((string)($candidate['label'] ?? ''));
+        if ($line === '' || $label === '') {
+            continue;
+        }
+        foreach ($known as $existing) {
+            $similarity = 0.0;
+            similar_text($line, $existing['line'], $similarity);
+            $similarity /= 100;
+            if ($line === $existing['line'] || $similarity >= 0.92) {
+                $conflicts[] = [
+                    'receipt_line' => $candidate['receipt_line'],
+                    'label' => $label,
+                    'existing_line' => $existing['line'],
+                    'existing_label' => $existing['label'],
+                    'source' => $existing['source'],
+                    'similarity' => round($similarity, 3),
+                    'conflicting_label' => $existing['label'] !== '' && $existing['label'] !== $label,
+                ];
+            }
+        }
+    }
+    return $conflicts;
+}
+
+function append_verified_holdout_rows(string $receiptId, array $rows): int
+{
+    if (holdout_receipt_already_added($receiptId)) {
+        throw new RuntimeException('Already added to holdout. This receipt has already contributed rows.');
+    }
+    $path = real_holdout_path();
+    $headers = ['receipt_line', 'label', 'category', 'receipt_id', 'store', 'source', 'verified', 'notes'];
+    ensure_directory(DATA_DIR);
+    $handle = fopen($path, 'a');
+    if (!$handle) {
+        throw new RuntimeException('Could not open the evaluation-only holdout dataset.');
+    }
+    if (!flock($handle, LOCK_EX)) {
+        fclose($handle);
+        throw new RuntimeException('Could not lock the evaluation-only holdout dataset.');
+    }
+    if (fstat($handle)['size'] === 0) {
+        fputcsv($handle, $headers);
+    }
+    foreach ($rows as $row) {
+        fputcsv($handle, array_map(static fn($header) => $row[$header] ?? '', $headers));
+    }
+    fflush($handle);
+    flock($handle, LOCK_UN);
+    fclose($handle);
+    return count($rows);
+}
+
+function append_training_feedback(array $result, string $source = 'user_feedback'): array
 {
     $headers = [
         'receipt_line',
@@ -201,24 +424,37 @@ function append_training_feedback(array $result, string $source = 'correction'):
         'recommendation',
         'aliases',
         'alternatives',
+        'source',
+        'variant_group',
     ];
-    $path = training_dataset_path();
+    // Corrections are candidates until an administrator explicitly promotes them.
+    $path = training_candidate_path();
     ensure_directory(DATA_DIR);
 
     $existingKeys = [];
+    $existingLabelsByLine = [];
+    $existingRows = [];
+    $existingHeaders = $headers;
 
     if (is_file($path)) {
         $handle = fopen($path, 'r');
 
         if ($handle) {
-            $existingHeaders = fgetcsv($handle);
+            $existingHeaders = fgetcsv($handle) ?: $headers;
 
             while (($row = fgetcsv($handle)) !== false) {
-                $receiptLine = strtolower(trim((string)($row[0] ?? '')));
-                $label = strtolower(trim((string)($row[1] ?? '')));
+                $record = [];
+                foreach ($existingHeaders as $index => $header) {
+                    $record[strtolower(trim((string)$header))] = (string)($row[$index] ?? '');
+                }
+
+                $receiptLine = normalize_training_feedback_text((string)($record['receipt_line'] ?? ''));
+                $label = normalize_training_feedback_text((string)($record['label'] ?? ''));
 
                 if ($receiptLine !== '' && $label !== '') {
                     $existingKeys[$receiptLine . '|' . $label] = true;
+                    $existingLabelsByLine[$receiptLine][$label] = true;
+                    $existingRows[] = $record;
                 }
             }
 
@@ -227,10 +463,28 @@ function append_training_feedback(array $result, string $source = 'correction'):
     }
 
     $needsHeader = !is_file($path) || filesize($path) === 0;
+
+    if (!$needsHeader && (!in_array('source', $existingHeaders, true) || !in_array('variant_group', $existingHeaders, true))) {
+        $migrationHandle = fopen($path, 'w');
+
+        if ($migrationHandle) {
+            fputcsv($migrationHandle, $headers);
+            foreach ($existingRows as $record) {
+                $line = normalize_training_feedback_text((string)($record['receipt_line'] ?? ''));
+                $label = normalize_training_feedback_text((string)($record['label'] ?? ''));
+                $record['source'] = normalize_training_feedback_text((string)($record['source'] ?? '')) ?: 'manual';
+                $record['variant_group'] = normalize_training_feedback_text((string)($record['variant_group'] ?? '')) ?: 'manual:' . $label . ':' . $line;
+                fputcsv($migrationHandle, array_map(static fn($header) => $record[$header] ?? '', $headers));
+            }
+            fclose($migrationHandle);
+            $existingHeaders = $headers;
+        }
+    }
+
     $handle = fopen($path, 'a');
 
     if (!$handle) {
-        return 0;
+        return ['rows_added' => 0, 'duplicates_skipped' => 0, 'conflicts_skipped' => 0];
     }
 
     if ($needsHeader) {
@@ -238,15 +492,29 @@ function append_training_feedback(array $result, string $source = 'correction'):
     }
 
     $written = 0;
+    $duplicatesSkipped = 0;
+    $conflictsSkipped = 0;
+
+    $catalogLabels = [];
+    $catalogPath = DATA_DIR . DIRECTORY_SEPARATOR . 'food_catalog.json';
+    if (is_file($catalogPath)) {
+        $catalog = json_decode((string)file_get_contents($catalogPath), true);
+        foreach (is_array($catalog) ? $catalog : [] as $food) {
+            $catalogLabel = normalize_training_feedback_text((string)($food['name'] ?? ''));
+            if ($catalogLabel !== '') {
+                $catalogLabels[$catalogLabel] = true;
+            }
+        }
+    }
 
     foreach (($result['items'] ?? []) as $item) {
         if (!is_array($item)) {
             continue;
         }
 
-        $label = strtolower(trim((string)($item['name'] ?? '')));
+        $label = normalize_training_feedback_text((string)($item['name'] ?? ''));
         $quantity = trim((string)($item['quantity'] ?? '1'));
-        $receiptLine = strtolower(trim((string)($item['training_receipt_line'] ?? $item['raw_line'] ?? '')));
+        $receiptLine = normalize_training_feedback_text((string)($item['training_receipt_line'] ?? $item['raw_line'] ?? ''));
 
         if ($label === '') {
             continue;
@@ -256,11 +524,24 @@ function append_training_feedback(array $result, string $source = 'correction'):
             $receiptLine = trim($label . ' ' . $quantity);
         }
 
+        if ($catalogLabels && !isset($catalogLabels[$label])) {
+            $conflictsSkipped++;
+            continue;
+        }
+
         $key = $receiptLine . '|' . $label;
 
         if (isset($existingKeys[$key])) {
+            $duplicatesSkipped++;
             continue;
         }
+
+        if (!empty($existingLabelsByLine[$receiptLine]) && !isset($existingLabelsByLine[$receiptLine][$label])) {
+            $conflictsSkipped++;
+            continue;
+        }
+
+        $variantGroup = 'feedback:' . sha1($receiptLine);
 
         fputcsv($handle, [
             $receiptLine,
@@ -274,11 +555,14 @@ function append_training_feedback(array $result, string $source = 'correction'):
             '',
             $label,
             '',
+            $source ?: 'user_feedback',
+            $variantGroup,
         ]);
         $existingKeys[$key] = true;
+        $existingLabelsByLine[$receiptLine][$label] = true;
         $written++;
     }
 
     fclose($handle);
-    return $written;
+    return ['rows_added' => $written, 'duplicates_skipped' => $duplicatesSkipped, 'conflicts_skipped' => $conflictsSkipped];
 }

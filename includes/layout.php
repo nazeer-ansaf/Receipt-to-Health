@@ -110,7 +110,8 @@ function render_page_start(string $title, string $active = 'dashboard'): void
     $user = current_user();
     $isAuthPage = in_array($currentPage, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php'], true);
     $htmlClass = $isAuthPage ? ' class="auth-page-root"' : '';
-    $bodyClass = $isAuthPage ? ' class="auth-page' . ($currentPage === 'register.php' ? ' register-page' : '') . '"' : '';
+    $pageClass = $currentPage === 'profile_setup.php' ? ' profile-page' : '';
+    $bodyClass = $isAuthPage ? ' class="auth-page' . ($currentPage === 'register.php' ? ' register-page' : '') . '"' : ($pageClass !== '' ? ' class="' . trim($pageClass) . '"' : '');
     $homeHref = $user ? role_home_href($user) : 'index.php';
     $searchPlaceholder = $user && normalize_user_role((string)($user['role'] ?? 'user')) === 'admin'
         ? 'Search users, foods, reports'

@@ -1,0 +1,31 @@
+flowchart TD
+    Start([Start])
+    Login{Logged in or guest mode?}
+    Access[Login / Register / Continue as Guest]
+    Profile[Enter family size, age group, conditions, health notes]
+    Upload[Upload receipt image or text file]
+    Validate{Allowed file type?}
+    Invalid[Show upload error and choose another file]
+    SaveFile[Save uploaded receipt]
+    Analyze[Run Python OCR and analysis]
+    Review{Review detected items?}
+    Draft[Save OCR draft]
+    Correct[User corrects item names and quantities]
+    Reanalyze[Analyze corrected items]
+    Persist[Persist result to JSON and database]
+    Dashboard[Display dashboard with score, alerts, recommendations]
+    Export{Export needed?}
+    ExportReport[Generate PDF / CSV / JSON]
+    End([End])
+
+    Start --> Login
+    Login -- No --> Access --> Profile
+    Login -- Yes --> Profile
+    Profile --> Upload --> Validate
+    Validate -- No --> Invalid --> Upload
+    Validate -- Yes --> SaveFile --> Analyze --> Review
+    Review -- Yes --> Draft --> Correct --> Reanalyze --> Persist
+    Review -- No --> Persist
+    Persist --> Dashboard --> Export
+    Export -- Yes --> ExportReport --> End
+    Export -- No --> End

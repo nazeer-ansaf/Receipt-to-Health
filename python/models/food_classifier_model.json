@@ -1,0 +1,22 @@
+{
+  "version": "2026-08-26T205808.370959+0000",
+  "trained_at": "2026-08-26T20:58:08.370959+00:00",
+  "raw_dataset_hash": "62d79ab7e5bc3de7bdc7d88e53acd57c72c737e9d543249b29aa24fb7cecc3fa",
+  "dataset_hash": "62d79ab7e5bc3de7bdc7d88e53acd57c72c737e9d543249b29aa24fb7cecc3fa",
+  "catalog_hash": "91d11e300615c2cd1318b31794b577e199045056e6b8ed5ecb86c6023139673a",
+  "generated_dataset_hash": "",
+  "trainer_schema_version": "grouped-evaluation-v2",
+  "split_seed": 42,
+  "physical_csv_rows": 189,
+  "valid_raw_examples": 189,
+  "catalog_derived_examples": 276,
+  "generated_augmentation_examples": 276,
+  "effective_dataset_rows": 465,
+  "dataset_rows": 465,
+  "train_rows": 326,
+  "validation_rows": 68,
+  "test_rows": 71,
+  "group_count": 157,
+  "label_count": 43,
+  "category_count": 22
+}

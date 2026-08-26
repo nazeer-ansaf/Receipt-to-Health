@@ -80,7 +80,7 @@ $result['profile_context'] = [
 $result['profile_analysis'] = $profileAnalysis;
 $result['training_feedback'] = [
     'source' => 'manual_text_correction',
-    'rows_added' => append_training_feedback($result, 'manual_text_correction'),
+    ...append_training_feedback($result, 'user_feedback'),
 ];
 persist_analysis_result($result, $textPath, current_user_id());
 save_analysis_result($result, $receiptId);

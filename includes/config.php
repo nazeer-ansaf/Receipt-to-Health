@@ -7,6 +7,14 @@ define('UPLOAD_DIR', ROOT_DIR . DIRECTORY_SEPARATOR . 'uploads');
 define('DATA_DIR', ROOT_DIR . DIRECTORY_SEPARATOR . 'data');
 define('RESULT_DIR', DATA_DIR . DIRECTORY_SEPARATOR . 'results');
 define('OCR_DRAFT_DIR', DATA_DIR . DIRECTORY_SEPARATOR . 'ocr_drafts');
+define('EXTERNAL_IMPORT_DIR', DATA_DIR . DIRECTORY_SEPARATOR . 'external_imports');
+define('EXTERNAL_DATASET_DIR', DATA_DIR . DIRECTORY_SEPARATOR . 'external_datasets');
+define('EXTERNAL_JOB_DIR', DATA_DIR . DIRECTORY_SEPARATOR . 'external_jobs');
+define('EXTERNAL_BATCH_SIZE', max(100, (int)(getenv('EXTERNAL_DATASET_BATCH_SIZE') ?: 1000)));
+define('EXTERNAL_MAX_ARCHIVE_BYTES', max(1024 * 1024 * 1024, (int)(getenv('EXTERNAL_MAX_ARCHIVE_BYTES') ?: 20 * 1024 * 1024 * 1024)));
+define('EXTERNAL_MAX_EXTRACTED_BYTES', max(2 * 1024 * 1024 * 1024, (int)(getenv('EXTERNAL_MAX_EXTRACTED_BYTES') ?: 80 * 1024 * 1024 * 1024)));
+define('EXTERNAL_MAX_EXTRACTED_FILES', max(1000, (int)(getenv('EXTERNAL_MAX_EXTRACTED_FILES') ?: 200000)));
+define('EXTERNAL_MAX_ARCHIVE_DEPTH', max(1, (int)(getenv('EXTERNAL_MAX_ARCHIVE_DEPTH') ?: 2)));
 
 define('DB_HOST', '127.0.0.1');
 define('DB_NAME', 'receipt_to_health');

@@ -4,12 +4,13 @@ import math
 import os
 import pickle
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from difflib import SequenceMatcher
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 ML_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "food_classifier.joblib")
+ML_TRAINER_SCHEMA_VERSION = "grouped-evaluation-v2"
 ML_CONFIDENCE_THRESHOLD = 0.7
 ML_CATEGORY_SUGGESTION_THRESHOLD = 0.45
 ML_CLASSIFIER = None
@@ -849,6 +850,31 @@ def find_deterministic_food_match(line):
     return None
 
 
+def file_sha256(path):
+    import hashlib
+
+    digest = hashlib.sha256()
+    with open(path, "rb") as source:
+        for chunk in iter(lambda: source.read(65536), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def model_is_current(model_version):
+    dataset_path = os.path.join(ROOT_DIR, "data", "training_food_items.csv")
+    catalog_path = os.path.join(ROOT_DIR, "data", "food_catalog.json")
+    generated_path = os.path.join(ROOT_DIR, "data", "generated_training_variants.csv")
+    expected_dataset_hash = file_sha256(dataset_path) if os.path.isfile(dataset_path) else ""
+    expected_catalog_hash = file_sha256(catalog_path) if os.path.isfile(catalog_path) else ""
+    expected_generated_hash = file_sha256(generated_path) if os.path.isfile(generated_path) else ""
+    return (
+        model_version.get("raw_dataset_hash", model_version.get("dataset_hash", "")) == expected_dataset_hash
+        and model_version.get("catalog_hash", "") == expected_catalog_hash
+        and model_version.get("generated_dataset_hash", "") == expected_generated_hash
+        and model_version.get("trainer_schema_version") == ML_TRAINER_SCHEMA_VERSION
+    )
+
+
 def load_food_classifier():
     global ML_CLASSIFIER, ML_CLASSIFIER_STATUS, ML_MODEL_BUNDLE
 
@@ -877,14 +903,24 @@ def load_food_classifier():
             ML_CLASSIFIER = loaded_model
             model_version = {}
 
+        current = model_is_current(model_version)
         ML_CLASSIFIER_STATUS = {
             "enabled": True,
-            "status": "loaded",
+            "status": "loaded" if current else "stale",
             "model_path": ML_MODEL_PATH,
             "version": model_version.get("version", "legacy"),
             "trained_at": model_version.get("trained_at", ""),
             "dataset_rows": model_version.get("dataset_rows", 0),
-            "message": "ML food classifier loaded successfully.",
+            "raw_dataset_rows": model_version.get("physical_csv_rows", 0),
+            "effective_dataset_rows": model_version.get("effective_dataset_rows", model_version.get("dataset_rows", 0)),
+            "train_rows": model_version.get("train_rows", 0),
+            "validation_rows": model_version.get("validation_rows", 0),
+            "test_rows": model_version.get("test_rows", 0),
+            "dataset_hash": model_version.get("raw_dataset_hash", model_version.get("dataset_hash", "")),
+            "catalog_hash": model_version.get("catalog_hash", ""),
+            "generated_dataset_hash": model_version.get("generated_dataset_hash", ""),
+            "trainer_schema_version": model_version.get("trainer_schema_version", ""),
+            "message": "ML food classifier loaded successfully." if current else "ML model is loaded but stale relative to the current dataset, catalog, or trainer schema.",
         }
         return ML_CLASSIFIER
     except Exception as exception:
@@ -1099,7 +1135,7 @@ def load_catalog_overrides():
 load_catalog_overrides()
 
 
-def extract_text(input_path):
+def extract_text(input_path, demo_mode=False):
     global OCR_STATUS
     _, extension = os.path.splitext(input_path.lower())
     attempts = []
@@ -1209,22 +1245,26 @@ def extract_text(input_path):
         }
         return selected["text"]
 
+    if demo_mode:
+        OCR_STATUS = {
+            "engine": "demo_fallback",
+            "status": "demo_text",
+            "message": "Image OCR did not return usable text, so explicit demo mode used fallback text.",
+            "confidence": 0.35,
+            "confidence_label": "Low",
+            "attempts": attempts,
+        }
+        return "milk 2\nbread 2\nsoda 3\nchips 2\napples 6"
+
     OCR_STATUS = {
-        "engine": "demo_fallback",
-        "status": "demo_text",
-        "message": "Image OCR did not return usable text, so demo fallback text was used. Install Tesseract or EasyOCR models for real image receipts.",
-        "confidence": 0.35,
+        "engine": "none",
+        "status": "failure",
+        "message": "OCR did not return usable text. Re-upload a clearer receipt or use manual text/item correction.",
+        "confidence": 0.0,
         "confidence_label": "Low",
         "attempts": attempts,
     }
-
-    return """
-    milk 2
-    bread 2
-    soda 3
-    chips 2
-    apples 6
-    """
+    return ""
 
 
 def alias_matches(line, alias):
@@ -1871,6 +1911,7 @@ def main():
     parser.add_argument("--age-group", default="adult")
     parser.add_argument("--conditions", default="")
     parser.add_argument("--health-notes", default="")
+    parser.add_argument("--demo-mode", action="store_true", help="Allow the explicit demo OCR fallback.")
     args = parser.parse_args()
 
     conditions = [
@@ -1879,8 +1920,33 @@ def main():
         if condition.strip() and condition.strip() != "none"
     ]
 
-    extracted_text = extract_text(args.input)
+    extracted_text = extract_text(args.input, demo_mode=args.demo_mode)
     load_food_classifier()
+
+    if OCR_STATUS.get("status") == "failure":
+        result = {
+            "analysis_status": "ocr_failed",
+            "family": {"family_size": args.family_size, "age_group": args.age_group, "conditions": conditions},
+            "extracted_text": "",
+            "receipt_metadata": {"store_name": "", "receipt_date": ""},
+            "ocr_status": OCR_STATUS,
+            "health_note_analysis": {"raw_notes": args.health_notes, "flags": []},
+            "items": [],
+            "unmatched_lines": [],
+            "unmatched_line_predictions": [],
+            "category_distribution": {},
+            "totals_nutrition": {"sugar_g": 0, "saturated_fat_g": 0, "sodium_mg": 0, "fiber_g": 0},
+            "per_person_nutrition": {"sugar_g": 0, "saturated_fat_g": 0, "sodium_mg": 0, "fiber_g": 0, "nutrient_diversity": 0},
+            "health_score": {"score": 0, "label": "OCR failed", "breakdown": {}, "weights": {}, "weight_adjustments": []},
+            "recommendations": ["OCR could not read this receipt. Re-upload a clearer image or review the receipt text manually before analysis."],
+            "recommendation_proofs": [],
+            "anomalies": [],
+            "risk_summary": {"high_risk_item_count": 0, "high_risk_items": [], "sugar_alert": False, "sodium_alert": False, "fiber_alert": False, "anomaly_count": 0},
+            "ml_classification": ML_CLASSIFIER_STATUS,
+        }
+        print(json.dumps(result))
+        return
+
     items, unmatched_lines, unmatched_predictions = normalize_items(extracted_text)
     totals, per_person = calculate_nutrition(items, args.family_size)
     context_flags = parse_health_notes(args.health_notes)
@@ -1893,6 +1959,15 @@ def main():
     alternatives = item_alternatives(items)
     score_explanation = explain_score(score, items, per_person)
     priority_alerts = build_priority_alerts(items, per_person, score, anomalies, context_flags)
+    verified_food_items = len(items) + len(unmatched_lines)
+    detection_layers = Counter(item.get("detection_method", "unclassified") for item in items)
+    detection_layers["unmatched"] = len(unmatched_lines)
+    score_coverage = {
+        "scored_food_items": len(items),
+        "verified_food_items": verified_food_items,
+        "coverage": round(len(items) / verified_food_items, 4) if verified_food_items else 0.0,
+        "warning": "Health score may be incomplete because some food lines were not matched." if unmatched_lines else "All detected food lines contributed to the health score.",
+    }
 
     result = {
         "family": {
@@ -1919,6 +1994,8 @@ def main():
         "health_score": score,
         "score_explanation": score_explanation,
         "priority_alerts": priority_alerts,
+        "score_coverage": score_coverage,
+        "detection_layers": dict(detection_layers),
         "trend": {
             "status": "not_enough_history",
             "message": "Upload more receipts to calculate weekly and monthly trends.",

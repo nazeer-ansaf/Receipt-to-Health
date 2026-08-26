@@ -1,0 +1,1387 @@
+{
+  "accuracy": 0.6901,
+  "macro_precision": 0.716,
+  "macro_recall": 0.7059,
+  "macro_f1": 0.6933,
+  "weighted_f1": 0.7272,
+  "validation": {
+    "accuracy": 0.5588,
+    "macro_precision": 0.6143,
+    "macro_recall": 0.5934,
+    "macro_f1": 0.5835,
+    "weighted_f1": 0.5801,
+    "classification_report": {
+      "apple": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 1
+      },
+      "banana": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "beans": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 1
+      },
+      "buttermilk dessert": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "cheese": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 6
+      },
+      "chicken": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 2
+      },
+      "fish": {
+        "precision": 0.5,
+        "recall": 0.25,
+        "f1_score": 0.3333,
+        "support": 4
+      },
+      "juice": {
+        "precision": 1.0,
+        "recall": 0.5333,
+        "f1_score": 0.6957,
+        "support": 15
+      },
+      "m038m": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 4
+      },
+      "milk": {
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1_score": 0.8,
+        "support": 6
+      },
+      "mushrooms": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "noodles": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 5
+      },
+      "nuts": {
+        "precision": 1.0,
+        "recall": 0.8571,
+        "f1_score": 0.9231,
+        "support": 7
+      },
+      "oil": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "orange": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "rice": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "sauce": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 1
+      },
+      "shredded jack cheese": {
+        "precision": 0.6,
+        "recall": 1.0,
+        "f1_score": 0.75,
+        "support": 9
+      },
+      "soda": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "vegetables": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 6
+      },
+      "yogurt": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1_score": 0.6667,
+        "support": 1
+      }
+    }
+  },
+  "test": {
+    "accuracy": 0.6901,
+    "macro_precision": 0.716,
+    "macro_recall": 0.7059,
+    "macro_f1": 0.6933,
+    "weighted_f1": 0.7272,
+    "classification_report": {
+      "almond tortillas": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 5
+      },
+      "apple": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 1
+      },
+      "beans": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 3
+      },
+      "bread": {
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1_score": 0.8571,
+        "support": 8
+      },
+      "cassava tortillas": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "cereal": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 9
+      },
+      "cheese": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 2
+      },
+      "chicken": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1_score": 0.6667,
+        "support": 1
+      },
+      "chicken sausage": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "chips": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 4
+      },
+      "chocolate": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 4
+      },
+      "cookies": {
+        "precision": 1.0,
+        "recall": 0.8,
+        "f1_score": 0.8889,
+        "support": 5
+      },
+      "crackers": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "cucumber": {
+        "precision": 1.0,
+        "recall": 0.4286,
+        "f1_score": 0.6,
+        "support": 7
+      },
+      "fish": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "heart foundation tick product of australia": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 4
+      },
+      "juice": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 1
+      },
+      "m038m": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "milk": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 2
+      },
+      "mushrooms": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "oil": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1_score": 0.6667,
+        "support": 1
+      },
+      "orange": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 1
+      },
+      "rice": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "sauce": {
+        "precision": 0.8889,
+        "recall": 0.7273,
+        "f1_score": 0.8,
+        "support": 11
+      },
+      "sausages": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "shredded jack cheese": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "soda": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 2
+      }
+    }
+  },
+  "category_accuracy": 0.8028,
+  "category_validation": {
+    "accuracy": 0.6618,
+    "macro_precision": 0.5745,
+    "macro_recall": 0.5548,
+    "macro_f1": 0.5019,
+    "weighted_f1": 0.6774,
+    "classification_report": {
+      "condiment": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 1
+      },
+      "dairy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 22
+      },
+      "dairy fat": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "fat": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "fruit": {
+        "precision": 0.1429,
+        "recall": 1.0,
+        "f1_score": 0.25,
+        "support": 1
+      },
+      "grain": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "healthy fat": {
+        "precision": 0.8333,
+        "recall": 0.7143,
+        "f1_score": 0.7692,
+        "support": 7
+      },
+      "legume": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 1
+      },
+      "m038m": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 4
+      },
+      "processed grain": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 5
+      },
+      "processed meat": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "protein": {
+        "precision": 1.0,
+        "recall": 0.1667,
+        "f1_score": 0.2857,
+        "support": 6
+      },
+      "snack": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "sugary drink": {
+        "precision": 0.7692,
+        "recall": 0.6667,
+        "f1_score": 0.7143,
+        "support": 15
+      },
+      "vegetable": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 6
+      },
+      "whole grain": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      }
+    }
+  },
+  "category_test": {
+    "accuracy": 0.8028,
+    "macro_precision": 0.8071,
+    "macro_recall": 0.7711,
+    "macro_f1": 0.7711,
+    "weighted_f1": 0.8392,
+    "classification_report": {
+      "breakfast": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 9
+      },
+      "condiment": {
+        "precision": 1.0,
+        "recall": 0.7273,
+        "f1_score": 0.8421,
+        "support": 11
+      },
+      "dairy": {
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1_score": 0.8571,
+        "support": 4
+      },
+      "dairy dessert": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "fat": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1_score": 0.6667,
+        "support": 1
+      },
+      "fruit": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 2
+      },
+      "grain": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 8
+      },
+      "grain alternative": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 5
+      },
+      "heart foundation tick,product of australia": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 4
+      },
+      "legume": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 3
+      },
+      "m038m": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "processed meat": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "protein": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 1
+      },
+      "snack": {
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1_score": 0.8889,
+        "support": 4
+      },
+      "sugary drink": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 3
+      },
+      "sweet snack": {
+        "precision": 1.0,
+        "recall": 0.8889,
+        "f1_score": 0.9412,
+        "support": 9
+      },
+      "vegetable": {
+        "precision": 1.0,
+        "recall": 0.4286,
+        "f1_score": 0.6,
+        "support": 7
+      }
+    }
+  },
+  "labels": [
+    "almond tortillas",
+    "apple",
+    "banana",
+    "beans",
+    "beef stew meat",
+    "bread",
+    "buttermilk dessert",
+    "cassava tortillas",
+    "cereal",
+    "cheese",
+    "chicken",
+    "chicken sausage",
+    "chips",
+    "chocolate",
+    "coffee",
+    "cookies",
+    "crackers",
+    "cucumber",
+    "eggs",
+    "fish",
+    "heart foundation tick product of australia",
+    "heavy cream",
+    "juice",
+    "m038m",
+    "macaroni",
+    "margarine",
+    "milk",
+    "muesli",
+    "mushrooms",
+    "noodles",
+    "nuts",
+    "oats",
+    "oil",
+    "orange",
+    "pasta",
+    "rice",
+    "salmon fillet",
+    "sauce",
+    "sausages",
+    "shredded jack cheese",
+    "soda",
+    "vegetables",
+    "yogurt"
+  ],
+  "category_labels": [
+    "beverage",
+    "breakfast",
+    "condiment",
+    "dairy",
+    "dairy dessert",
+    "dairy fat",
+    "fat",
+    "fruit",
+    "grain",
+    "grain alternative",
+    "healthy fat",
+    "heart foundation tick,product of australia",
+    "legume",
+    "m038m",
+    "processed grain",
+    "processed meat",
+    "protein",
+    "snack",
+    "sugary drink",
+    "sweet snack",
+    "vegetable",
+    "whole grain"
+  ],
+  "group_count": 157,
+  "split_counts": {
+    "train": 326,
+    "validation": 68,
+    "test": 71
+  },
+  "split_group_counts": {
+    "train": 110,
+    "validation": 21,
+    "test": 26
+  },
+  "split_assignments": {
+    "manual:almond tortillas:pl tortilla s": "train",
+    "manual:apple:apple fruit": "train",
+    "manual:banana:banana loose": "train",
+    "manual:beans:black bean": "train",
+    "catalog:beef stew meat:beef chuck": "train",
+    "manual:bread:bakery bread sliced": "train",
+    "catalog:buttermilk dessert:dairy dessert": "train",
+    "catalog:cassava tortillas:cassava tortilla": "train",
+    "manual:cereal:choco cereal": "train",
+    "manual:cheese:cheddar cheese": "train",
+    "manual:chicken:chicken thigh": "train",
+    "catalog:chicken sausage:chicken sausage": "train",
+    "manual:chips:crisp": "train",
+    "manual:chocolate:candy chocolate": "train",
+    "catalog:coffee:coffee": "train",
+    "manual:cookies:chocolate cooky": "train",
+    "catalog:crackers:cracker": "train",
+    "manual:cucumber:f l english cucumb": "train",
+    "catalog:eggs:egg": "train",
+    "manual:fish:fish slice": "train",
+    "manual:heart foundation tick product of australia:free range egg": "train",
+    "catalog:heavy cream:heavy cream": "train",
+    "manual:juice:apple juice": "train",
+    "manual:m038m:cucumber": "train",
+    "catalog:macaroni:macaroni": "train",
+    "catalog:margarine:margarine": "train",
+    "manual:milk:anchor fresh milk": "train",
+    "catalog:muesli:assorted muesli": "train",
+    "manual:mushrooms:365wfm og wht slcd mshrm": "train",
+    "manual:noodles:fried noodle": "train",
+    "manual:nuts:cashew nut": "train",
+    "manual:oats:instant oatmeal": "train",
+    "manual:oil:coconut oil": "train",
+    "manual:orange:citru orange": "train",
+    "manual:pasta:s65wfm og vdk pasta": "train",
+    "manual:rice:basmati rice": "train",
+    "manual:salmon fillet:mahi mahi fillet": "train",
+    "manual:sauce:chilli sauce": "train",
+    "manual:sausages:bar s meat frnk": "train",
+    "catalog:shredded jack cheese:shredded jack cheese": "train",
+    "manual:soda:carbonated drink": "train",
+    "manual:vegetables:fresh veg bundle": "train",
+    "manual:yogurt:greek yogurt": "train",
+    "manual:cereal:honey flake": "train",
+    "manual:chips:salted chip": "train",
+    "manual:banana:plantain banana": "train",
+    "manual:sausages:processed meat": "train",
+    "manual:beans:lentil": "train",
+    "catalog:juice:orange pulp": "train",
+    "manual:vegetables:spinach leave": "train",
+    "catalog:oil:cooking oil": "train",
+    "manual:chips:potato chip family": "train",
+    "catalog:sauce:ketchup": "train",
+    "catalog:fish:salmon": "train",
+    "manual:beans:chickpea": "train",
+    "catalog:oats:oat": "train",
+    "manual:orange:orange fruit": "train",
+    "catalog:nuts:almond": "train",
+    "catalog:juice:no pulp orange": "train",
+    "catalog:salmon fillet:salmon filet": "train",
+    "manual:milk:fresh milk bottle": "train",
+    "manual:nuts:unsalted nut": "train",
+    "catalog:mushrooms:mushroom": "train",
+    "manual:mushrooms:slcd mshrm": "train",
+    "manual:chocolate:milk chocolate": "train",
+    "manual:orange:fresh orange": "train",
+    "catalog:orange:orange": "train",
+    "manual:milk:low fat milk": "train",
+    "catalog:cookies:biscuit": "train",
+    "manual:apple:ut gala apple og b": "train",
+    "manual:soda:cola": "train",
+    "manual:cheese:cheese spread": "train",
+    "manual:beans:dal": "train",
+    "manual:banana:ripe banana": "train",
+    "manual:noodles:maggi noodle": "train",
+    "manual:banana:fresh banana": "train",
+    "manual:chips:pringle crisp": "train",
+    "manual:noodles:instant noodle": "train",
+    "catalog:rice:raw rice": "train",
+    "catalog:apple:apple": "train",
+    "catalog:nuts:cashew": "train",
+    "catalog:chicken:chicken": "train",
+    "catalog:sausages:sausage": "train",
+    "catalog:pasta:dry pasta": "train",
+    "manual:yogurt:vanilla yogurt": "validation",
+    "manual:chocolate:dark chocolate": "test",
+    "catalog:nuts:nut": "validation",
+    "manual:oil:sunflower oil": "test",
+    "manual:juice:mango juice": "test",
+    "catalog:chocolate:choco": "train",
+    "manual:milk:milk powder": "test",
+    "catalog:sauce:sauce": "test",
+    "manual:cheese:processed cheese": "validation",
+    "catalog:m038m:m038m": "validation",
+    "catalog:buttermilk dessert:buttermilk": "train",
+    "manual:fish:fresh fish": "validation",
+    "catalog:noodles:noodle": "validation",
+    "catalog:cookies:cooky": "test",
+    "manual:vegetables:mixed vegetable": "train",
+    "catalog:shredded jack cheese:ched jack shred": "validation",
+    "manual:apple:green apple": "train",
+    "catalog:almond tortillas:almond tortilla": "test",
+    "manual:bread:toast bread": "train",
+    "catalog:fish:sardine": "train",
+    "catalog:yogurt:flavored yogurt": "train",
+    "catalog:chocolate:candy": "test",
+    "catalog:cereal:breakfast cereal": "test",
+    "manual:apple:red apple": "validation",
+    "manual:nuts:mixed nut": "validation",
+    "catalog:fish:tuna": "validation",
+    "catalog:fish:fish": "train",
+    "manual:noodles:winco noodle": "validation",
+    "manual:sauce:sauce sachet": "validation",
+    "catalog:juice:orange no pulp": "validation",
+    "manual:cheese:ham cheese": "test",
+    "catalog:vegetables:broccoli": "train",
+    "catalog:cucumber:cucumber": "test",
+    "catalog:vegetables:vegetable": "validation",
+    "manual:noodles:ramen": "train",
+    "manual:apple:fuji apple": "train",
+    "manual:beans:dhal": "validation",
+    "catalog:cereal:corn flake": "train",
+    "manual:chicken:whole chicken": "validation",
+    "manual:chicken:grilled chicken": "validation",
+    "catalog:milk:milk": "validation",
+    "manual:soda:coca cola": "test",
+    "manual:chips:lay potato chip": "train",
+    "manual:orange:mandarin orange": "test",
+    "manual:chocolate:choco bar": "train",
+    "manual:bread:white sandwich bread": "test",
+    "manual:yogurt:plain yogurt": "train",
+    "manual:chicken:fresh chicken": "test",
+    "manual:oats:quick oat": "train",
+    "manual:soda:sprite soft drink": "test",
+    "manual:soda:pepsi": "train",
+    "catalog:beans:bean": "test",
+    "manual:cheese:mozzarella": "train",
+    "catalog:cheese:cheese": "validation",
+    "manual:sausages:hot dog": "train",
+    "catalog:vegetables:spinach": "train",
+    "manual:cheese:cheese slice": "test",
+    "manual:milk:highland milk": "test",
+    "manual:beans:red bean": "train",
+    "manual:cookies:sweet biscuit": "test",
+    "catalog:soda:soda": "train",
+    "catalog:juice:fruit juice": "validation",
+    "catalog:heart foundation tick product of australia:heart foundation tick product of australia": "test",
+    "manual:cookies:cookie": "test",
+    "manual:apple:fresh apple": "test",
+    "manual:bread:whole grain bread": "train",
+    "catalog:chips:chip": "test",
+    "manual:rice:samba rice": "train",
+    "catalog:yogurt:curd": "train",
+    "manual:chocolate:dairy milk chocolate": "test",
+    "catalog:banana:banana": "train",
+    "catalog:bread:bread": "test",
+    "catalog:vegetables:carrot": "validation"
+  },
+  "unknown_evaluation": {
+    "total": 20,
+    "accepted_unknowns": 0,
+    "rejected_unknowns": 20,
+    "false_acceptance_rate": 0.0,
+    "rejection_rate": 1.0,
+    "examples": [
+      {
+        "text": "qxzv-not-a-food-98765 1",
+        "predicted_label": "fish",
+        "confidence": 0.2459,
+        "accepted": false
+      },
+      {
+        "text": "dish soap 2",
+        "predicted_label": "fish",
+        "confidence": 0.8214,
+        "accepted": false
+      },
+      {
+        "text": "toilet paper pack",
+        "predicted_label": "noodles",
+        "confidence": 0.5128,
+        "accepted": false
+      },
+      {
+        "text": "laptop charger 1",
+        "predicted_label": "margarine",
+        "confidence": 0.1968,
+        "accepted": false
+      },
+      {
+        "text": "garden gloves",
+        "predicted_label": "margarine",
+        "confidence": 0.1774,
+        "accepted": false
+      },
+      {
+        "text": "laundry detergent",
+        "predicted_label": "buttermilk dessert",
+        "confidence": 0.983,
+        "accepted": false
+      },
+      {
+        "text": "shampoo bottle",
+        "predicted_label": "sauce",
+        "confidence": 0.5576,
+        "accepted": false
+      },
+      {
+        "text": "bathroom tissue 4 pack",
+        "predicted_label": "mushrooms",
+        "confidence": 0.3678,
+        "accepted": false
+      },
+      {
+        "text": "dragon fruit imported box",
+        "predicted_label": "orange",
+        "confidence": 0.5275,
+        "accepted": false
+      },
+      {
+        "text": "tofu tempeh block",
+        "predicted_label": "cheese",
+        "confidence": 0.9992,
+        "accepted": false
+      },
+      {
+        "text": "sparkling yerba mate drink",
+        "predicted_label": "soda",
+        "confidence": 0.9968,
+        "accepted": false
+      },
+      {
+        "text": "unknown brand snack 1",
+        "predicted_label": "chicken",
+        "confidence": 0.2789,
+        "accepted": false
+      },
+      {
+        "text": "protein cookie mega max",
+        "predicted_label": "oil",
+        "confidence": 0.8384,
+        "accepted": false
+      },
+      {
+        "text": "kimchi ramen premium",
+        "predicted_label": "noodles",
+        "confidence": 0.9998,
+        "accepted": false
+      },
+      {
+        "text": "blue valley oat drink",
+        "predicted_label": "soda",
+        "confidence": 0.9627,
+        "accepted": false
+      },
+      {
+        "text": "household storage basket",
+        "predicted_label": "sausages",
+        "confidence": 0.3566,
+        "accepted": false
+      },
+      {
+        "text": "phone charger cable",
+        "predicted_label": "oil",
+        "confidence": 0.7391,
+        "accepted": false
+      },
+      {
+        "text": "vitamin supplement bottle",
+        "predicted_label": "sauce",
+        "confidence": 0.833,
+        "accepted": false
+      },
+      {
+        "text": "qxq lll 0o0 1",
+        "predicted_label": "fish",
+        "confidence": 0.1961,
+        "accepted": false
+      },
+      {
+        "text": "brnd xz snack 999",
+        "predicted_label": "beans",
+        "confidence": 0.2614,
+        "accepted": false
+      }
+    ]
+  },
+  "source_metrics": {
+    "catalog_alias": {
+      "accuracy": 0.6,
+      "macro_precision": 0.8,
+      "macro_recall": 0.6708,
+      "macro_f1": 0.7126,
+      "weighted_f1": 0.6645,
+      "classification_report": {
+        "almond tortillas": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 4
+        },
+        "beans": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 2
+        },
+        "bread": {
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1_score": 0.8571,
+          "support": 4
+        },
+        "cassava tortillas": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 0
+        },
+        "cereal": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 6
+        },
+        "chicken": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 0
+        },
+        "chicken sausage": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 0
+        },
+        "chips": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 2
+        },
+        "chocolate": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 2
+        },
+        "cookies": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 2
+        },
+        "crackers": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 0
+        },
+        "cucumber": {
+          "precision": 1.0,
+          "recall": 0.3333,
+          "f1_score": 0.5,
+          "support": 6
+        },
+        "fish": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 0
+        },
+        "heart foundation tick product of australia": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 4
+        },
+        "m038m": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 0
+        },
+        "rice": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 0
+        },
+        "sauce": {
+          "precision": 1.0,
+          "recall": 0.625,
+          "f1_score": 0.7692,
+          "support": 8
+        },
+        "sausages": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 0
+        }
+      }
+    },
+    "manual": {
+      "accuracy": 0.8065,
+      "macro_precision": 0.7794,
+      "macro_recall": 0.7892,
+      "macro_f1": 0.7753,
+      "weighted_f1": 0.8086,
+      "classification_report": {
+        "almond tortillas": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 1
+        },
+        "apple": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 1
+        },
+        "beans": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 1
+        },
+        "bread": {
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1_score": 0.8571,
+          "support": 4
+        },
+        "cassava tortillas": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 0
+        },
+        "cereal": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 3
+        },
+        "cheese": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 2
+        },
+        "chicken": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 1
+        },
+        "chips": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 2
+        },
+        "chocolate": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 2
+        },
+        "cookies": {
+          "precision": 1.0,
+          "recall": 0.6667,
+          "f1_score": 0.8,
+          "support": 3
+        },
+        "cucumber": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 1
+        },
+        "juice": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 1
+        },
+        "milk": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 2
+        },
+        "mushrooms": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 0
+        },
+        "oil": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1_score": 0.6667,
+          "support": 1
+        },
+        "orange": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 1
+        },
+        "sauce": {
+          "precision": 0.75,
+          "recall": 1.0,
+          "f1_score": 0.8571,
+          "support": 3
+        },
+        "shredded jack cheese": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 0
+        },
+        "soda": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 2
+        }
+      }
+    }
+  },
+  "label_counts": {
+    "milk": 11,
+    "bread": 11,
+    "soda": 11,
+    "chips": 9,
+    "apple": 12,
+    "rice": 14,
+    "vegetables": 14,
+    "yogurt": 14,
+    "cheese": 11,
+    "oats": 12,
+    "cereal": 14,
+    "juice": 21,
+    "cookies": 12,
+    "chocolate": 14,
+    "banana": 11,
+    "orange": 10,
+    "beans": 9,
+    "chicken": 12,
+    "fish": 14,
+    "sausages": 8,
+    "chicken sausage": 9,
+    "noodles": 9,
+    "sauce": 16,
+    "oil": 14,
+    "nuts": 14,
+    "pasta": 13,
+    "beef stew meat": 12,
+    "shredded jack cheese": 13,
+    "heavy cream": 9,
+    "salmon fillet": 8,
+    "cucumber": 8,
+    "mushrooms": 12,
+    "almond tortillas": 6,
+    "cassava tortillas": 5,
+    "buttermilk dessert": 10,
+    "margarine": 7,
+    "crackers": 10,
+    "eggs": 10,
+    "coffee": 12,
+    "muesli": 7,
+    "macaroni": 7,
+    "heart foundation tick product of australia": 5,
+    "m038m": 5
+  },
+  "category_counts": {
+    "dairy": 49,
+    "grain": 45,
+    "sugary drink": 32,
+    "snack": 19,
+    "fruit": 33,
+    "vegetable": 34,
+    "whole grain": 19,
+    "breakfast": 14,
+    "sweet snack": 26,
+    "legume": 9,
+    "protein": 56,
+    "processed meat": 17,
+    "processed grain": 9,
+    "condiment": 16,
+    "fat": 21,
+    "healthy fat": 14,
+    "dairy fat": 9,
+    "grain alternative": 11,
+    "dairy dessert": 10,
+    "beverage": 12,
+    "heart foundation tick,product of australia": 5,
+    "m038m": 5
+  },
+  "source_label_counts": {
+    "catalog_alias": {
+      "milk": 4,
+      "bread": 4,
+      "soda": 4,
+      "chips": 2,
+      "apple": 4,
+      "rice": 8,
+      "vegetables": 8,
+      "yogurt": 8,
+      "cheese": 4,
+      "oats": 6,
+      "cereal": 8,
+      "juice": 14,
+      "cookies": 6,
+      "chocolate": 8,
+      "banana": 4,
+      "orange": 4,
+      "beans": 2,
+      "chicken": 6,
+      "fish": 10,
+      "sausages": 2,
+      "noodles": 2,
+      "sauce": 10,
+      "oil": 8,
+      "nuts": 8,
+      "pasta": 10,
+      "beef stew meat": 10,
+      "heavy cream": 6,
+      "chicken sausage": 6,
+      "cucumber": 6,
+      "mushrooms": 8,
+      "shredded jack cheese": 12,
+      "almond tortillas": 4,
+      "cassava tortillas": 4,
+      "salmon fillet": 6,
+      "buttermilk dessert": 8,
+      "coffee": 10,
+      "crackers": 8,
+      "eggs": 8,
+      "heart foundation tick product of australia": 4,
+      "m038m": 4,
+      "macaroni": 6,
+      "margarine": 6,
+      "muesli": 6
+    },
+    "manual": {
+      "milk": 7,
+      "bread": 7,
+      "soda": 7,
+      "chips": 7,
+      "apple": 8,
+      "rice": 6,
+      "vegetables": 6,
+      "yogurt": 6,
+      "cheese": 7,
+      "oats": 6,
+      "cereal": 6,
+      "juice": 7,
+      "cookies": 6,
+      "chocolate": 6,
+      "banana": 7,
+      "orange": 6,
+      "beans": 7,
+      "chicken": 6,
+      "fish": 4,
+      "sausages": 6,
+      "chicken sausage": 3,
+      "noodles": 7,
+      "sauce": 6,
+      "oil": 6,
+      "nuts": 6,
+      "pasta": 3,
+      "beef stew meat": 2,
+      "shredded jack cheese": 1,
+      "heavy cream": 3,
+      "salmon fillet": 2,
+      "cucumber": 2,
+      "mushrooms": 4,
+      "almond tortillas": 2,
+      "cassava tortillas": 1,
+      "buttermilk dessert": 2,
+      "margarine": 1,
+      "crackers": 2,
+      "eggs": 2,
+      "coffee": 2,
+      "muesli": 1,
+      "macaroni": 1,
+      "heart foundation tick product of australia": 1,
+      "m038m": 1
+    }
+  },
+  "dataset": "C:\\xampp\\htdocs\\receipt-to-health\\data\\training_food_items.csv",
+  "model_version": {
+    "version": "2026-08-26T205808.370959+0000",
+    "trained_at": "2026-08-26T20:58:08.370959+00:00",
+    "raw_dataset_hash": "62d79ab7e5bc3de7bdc7d88e53acd57c72c737e9d543249b29aa24fb7cecc3fa",
+    "dataset_hash": "62d79ab7e5bc3de7bdc7d88e53acd57c72c737e9d543249b29aa24fb7cecc3fa",
+    "catalog_hash": "91d11e300615c2cd1318b31794b577e199045056e6b8ed5ecb86c6023139673a",
+    "generated_dataset_hash": "",
+    "trainer_schema_version": "grouped-evaluation-v2",
+    "split_seed": 42,
+    "physical_csv_rows": 189,
+    "valid_raw_examples": 189,
+    "catalog_derived_examples": 276,
+    "generated_augmentation_examples": 276,
+    "effective_dataset_rows": 465,
+    "dataset_rows": 465,
+    "train_rows": 326,
+    "validation_rows": 68,
+    "test_rows": 71,
+    "group_count": 157,
+    "label_count": 43,
+    "category_count": 22
+  },
+  "physical_csv_rows": 189,
+  "valid_raw_examples": 189,
+  "catalog_derived_examples": 276,
+  "generated_augmentation_examples": 276,
+  "effective_dataset_rows": 465,
+  "row_metadata_count": 53,
+  "source_counts": {
+    "manual": 189,
+    "catalog_alias": 276
+  },
+  "generated_source_counts": {},
+  "skipped_rows": [],
+  "duplicate_rows": [],
+  "conflicts": [],
+  "catalog_sync": {
+    "catalog_path": "C:\\xampp\\htdocs\\receipt-to-health\\data\\food_catalog.json",
+    "updated_labels": [
+      "almond tortillas",
+      "apple",
+      "banana",
+      "beans",
+      "beef stew meat",
+      "bread",
+      "buttermilk dessert",
+      "cereal",
+      "cheese",
+      "chicken",
+      "chicken sausage",
+      "chips",
+      "chocolate",
+      "coffee",
+      "cookies",
+      "crackers",
+      "cucumber",
+      "eggs",
+      "heart foundation tick product of australia",
+      "heavy cream",
+      "juice",
+      "m038m",
+      "margarine",
+      "milk",
+      "muesli",
+      "mushrooms",
+      "noodles",
+      "oats",
+      "oil",
+      "orange",
+      "pasta",
+      "rice",
+      "salmon fillet",
+      "sauce",
+      "sausages",
+      "soda",
+      "vegetables"
+    ],
+    "added_labels": []
+  }
+}

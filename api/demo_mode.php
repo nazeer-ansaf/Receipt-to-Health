@@ -39,7 +39,7 @@ $profileAnalysis = generate_health_profile_analysis($profile);
 $medicalRecords = load_medical_records();
 
 try {
-    $result = run_python_analysis($samplePath, $familySize, $ageGroup, $conditions, $healthNotes);
+    $result = run_python_analysis($samplePath, $familySize, $ageGroup, $conditions, $healthNotes, true);
 } catch (Throwable $exception) {
     json_response(['error' => 'Demo analysis failed.', 'details' => $exception->getMessage()], 500);
 }

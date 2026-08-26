@@ -15,3 +15,9 @@ python/__pycache__/
 python/models/*
 !python/models/.gitkeep
 *.pyc
+data/external_imports/*
+!data/external_imports/.gitkeep
+data/external_datasets/*
+!data/external_datasets/.gitkeep
+data/external_jobs/*
+!data/external_jobs/.gitkeep

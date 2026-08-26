@@ -1,0 +1,30 @@
+flowchart TB
+    Browser["Web Browser"]
+
+    subgraph PHPApp["PHP Application on Apache / XAMPP"]
+        Pages["PHP Pages\nLogin, Profile, Upload, Dashboard, Reports, Admin"]
+        APIs["API Endpoints\nprocess, analyze, export, upload"]
+        Includes["Shared Includes\nAuth, Profile, Analysis, Results, Catalog"]
+    end
+
+    subgraph AI["Python Analysis Layer"]
+        OCR["OCR Extraction"]
+        NLP["Parsing, Scoring, Recommendations"]
+    end
+
+    subgraph Storage["Storage Layer"]
+        MySQL["MySQL Database\nusers, receipts, scores"]
+        JSON["JSON Files\nresults, profiles, drafts"]
+        Uploads["Uploaded Files\nreceipts, records"]
+        Catalog["Food Catalog JSON"]
+    end
+
+    Browser -->|HTTP| APIs
+    Pages --> APIs
+    APIs --> Includes
+    Includes -->|analysis call| OCR
+    OCR --> NLP
+    APIs -->|SQL| MySQL
+    Includes -->|results| JSON
+    Includes -->|files| Uploads
+    NLP -->|catalog lookup| Catalog
